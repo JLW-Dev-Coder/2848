@@ -3,122 +3,73 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Form 2848 PDF Generator</title>
-
+  <title>Form 2848 Generator (Stamp)</title>
   <style>
-    body {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      margin: 32px;
-      line-height: 1.5;
-    }
-    h1 {
-      margin-bottom: 8px;
-    }
-    .meta {
-      color: #555;
-      font-size: 14px;
-      margin-bottom: 24px;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-    .pill {
-      background: #f3f4f6;
-      border-radius: 999px;
-      padding: 6px 12px;
-      font-size: 12px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    button {
-      font-size: 16px;
-      padding: 12px 18px;
-      cursor: pointer;
-    }
-    #status {
-      margin-top: 16px;
-      font-size: 14px;
-    }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 28px; line-height: 1.45; }
+    h1 { margin: 0 0 6px; }
+    .meta { color: #555; font-size: 14px; margin: 0 0 18px; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 14px; }
+    .pill { background: #f3f4f6; border-radius: 999px; font-size: 12px; max-width: 100%; overflow: hidden; padding: 6px 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .btn { cursor: pointer; padding: 10px 14px; }
+    #status { margin-top: 14px; font-size: 14px; }
   </style>
 </head>
 <body>
 
   <h1>Form 2848 Generator</h1>
-  <div class="meta">
-    Generates the official IRS Form 2848 PDF using provided data.
+  <p class="meta">Stamped onto a flattened IRS PDF (no form fields required).</p>
+
+  <div class="row" id="summary"></div>
+
+  <div class="row">
+    <button class="btn" id="generate" type="button">Generate PDF</button>
+    <label class="pill" style="display:flex;align-items:center;gap:8px;">
+      <input id="calibrate" type="checkbox" />
+      Calibrate grid
+    </label>
   </div>
 
-  <div class="grid" id="summary"></div>
-
-  <button id="generate">Generate PDF</button>
   <div id="status">Ready.</div>
 
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script>
     (function () {
-      const { PDFDocument } = PDFLib;
-      const qs = new URLSearchParams(window.location.search);
+      const { PDFDocument, rgb, StandardFonts } = PDFLib;
 
+      const qs = new URLSearchParams(window.location.search);
       const get = (k) => (qs.get(k) || "").trim();
       const getBool = (k) => ["1","true","yes","on"].includes((qs.get(k)||"").toLowerCase());
 
       const data = {
-        clientFirstName: get("clientFirstName"),
-        clientLastName: get("clientLastName"),
-        clientAddressLine1: get("clientAddressLine1"),
-        clientAddressLine2: get("clientAddressLine2"),
-        clientAddressTown: get("clientAddressTown"),
-        clientAddressRegion: get("clientAddressRegion"),
-        clientAddressZip: get("clientAddressZip"),
-        TaxpayerSSNITIN: get("TaxpayerSSNITIN"),
+        clientFirstName: get("clientFirstName") || "{{clientFirstName}}",
+        clientLastName: get("clientLastName") || "{{clientLastName}}",
+        clientAddressLine1: get("clientAddressLine1") || "{{clientAddressLine1}}",
+        clientAddressLine2: get("clientAddressLine2") || "{{clientAddressLine2}}",
+        clientAddressTown: get("clientAddressTown") || "{{clientAddressTown}}",
+        clientAddressRegion: get("clientAddressRegion") || "{{clientAddressRegion}}",
+        clientAddressZip: get("clientAddressZip") || "{{clientAddressZip}}",
+        TaxpayerSSNITIN: get("TaxpayerSSNITIN") || "{{TaxpayerSSNITIN}}",
 
-        "2848_Rep_1_First_Name": get("2848_Rep_1_First_Name"),
-        "2848_Rep_1_Last_Name": get("2848_Rep_1_Last_Name"),
-        "2828_Rep_1_Address_Line_1": get("2828_Rep_1_Address_Line_1"),
-        "2828_Rep_1_Address_Line_2": get("2828_Rep_1_Address_Line_2"),
-        "2828_Rep_1_Address_City": get("2828_Rep_1_Address_City"),
-        "2828_Rep_1_Address_State": get("2828_Rep_1_Address_State"),
-        "2828_Rep_1_Address_Zip": get("2828_Rep_1_Address_Zip"),
-        "2828_Rep_1_CAF": get("2828_Rep_1_CAF"),
-        "2828_Rep_1_PTIN": get("2828_Rep_1_PTIN"),
-        "2828_Rep_1_Telephone": get("2828_Rep_1_Telephone"),
-        "2828_Rep_1_Fax": get("2828_Rep_1_Fax"),
+        repFirst: get("2848_Rep_1_First_Name") || "{{2848_Rep_1_First_Name}}",
+        repLast: get("2848_Rep_1_Last_Name") || "{{2848_Rep_1_Last_Name}}",
+        repAddr1: get("2828_Rep_1_Address_Line_1") || "{{2828_Rep_1_Address_Line_1}}",
+        repAddr2: get("2828_Rep_1_Address_Line_2") || "{{2828_Rep_1_Address_Line_2}}",
+        repCity: get("2828_Rep_1_Address_City") || "{{2828_Rep_1_Address_City}}",
+        repState: get("2828_Rep_1_Address_State") || "{{2828_Rep_1_Address_State}}",
+        repZip: get("2828_Rep_1_Address_Zip") || "{{2828_Rep_1_Address_Zip}}",
+        repCAF: get("2828_Rep_1_CAF") || "{{2828_Rep_1_CAF}}",
+        repPTIN: get("2828_Rep_1_PTIN") || "{{2828_Rep_1_PTIN}}",
+        repTel: get("2828_Rep_1_Telephone") || "{{2828_Rep_1_Telephone}}",
+        repFax: get("2828_Rep_1_Fax") || "{{2828_Rep_1_Fax}}",
 
-        line3DescriptionOfMatter: get("line3DescriptionOfMatter"),
-        line3TaxFormNumber: get("line3TaxFormNumber"),
-        yearFrom: get("myOrganizationIRSCurrentTaxYear10ComplianceYears"),
-        yearTo: get("myOrganizationIRSCurrentTaxYear"),
+        line3DescriptionOfMatter: get("line3DescriptionOfMatter") || "Income",
+        line3TaxFormNumber: get("line3TaxFormNumber") || "1040",
+        yearFrom: get("myOrganizationIRSCurrentTaxYear10ComplianceYears") || "{{myOrganizationIRSCurrentTaxYear10ComplianceYears}}",
+        yearTo: get("myOrganizationIRSCurrentTaxYear") || "{{myOrganizationIRSCurrentTaxYear}}",
 
-        line5aAccessRecords: getBool("line5aAccessRecords"),
-        line5aSubstituteOrAddRep: getBool("line5aSubstituteOrAddRep"),
-
-        taxpayerIdType: (get("taxpayerIdType") || "SSN").toUpperCase()
+        line5aAccessRecords: getBool("line5aAccessRecords") || true,
+        line5aSubstituteOrAddRep: getBool("line5aSubstituteOrAddRep") || true
       };
-
-      const join = (arr) => arr.filter(Boolean).join("\n");
-
-      const taxpayerAddress = join([
-        data.clientAddressLine1,
-        data.clientAddressLine2,
-        [data.clientAddressTown, data.clientAddressRegion].filter(Boolean).join(", ") +
-          (data.clientAddressZip ? " " + data.clientAddressZip : "")
-      ]);
-
-      const repAddress = join([
-        data["2828_Rep_1_Address_Line_1"],
-        data["2828_Rep_1_Address_Line_2"],
-        [data["2828_Rep_1_Address_City"], data["2828_Rep_1_Address_State"]].filter(Boolean).join(", ") +
-          (data["2828_Rep_1_Address_Zip"] ? " " + data["2828_Rep_1_Address_Zip"] : "")
-      ]);
-
-      const yearRange =
-        data.yearFrom && data.yearTo
-          ? data.yearFrom + " through " + data.yearTo
-          : data.yearFrom || data.yearTo || "";
 
       const summary = document.getElementById("summary");
       const pill = (label, value) => {
@@ -128,78 +79,133 @@
         summary.appendChild(d);
       };
 
-      pill("Taxpayer", data.clientFirstName + " " + data.clientLastName);
-      pill("Representative", data["2848_Rep_1_First_Name"] + " " + data["2848_Rep_1_Last_Name"]);
-      pill("Tax Form", data.line3TaxFormNumber);
-      pill("Years", yearRange);
+      const taxpayerName = [data.clientFirstName, data.clientLastName].filter(Boolean).join(" ").trim();
+      const repName = [data.repFirst, data.repLast].filter(Boolean).join(" ").trim();
+      const yearRange = (data.yearFrom && data.yearTo) ? `${data.yearFrom} through ${data.yearTo}` : (data.yearFrom || data.yearTo || "");
+
+      pill("Matter", data.line3DescriptionOfMatter);
+      pill("Representative", repName);
+      pill("Tax form", data.line3TaxFormNumber);
+      pill("Taxpayer", taxpayerName);
 
       const status = document.getElementById("status");
 
-      document.getElementById("generate").addEventListener("click", async () => {
-        try {
-          status.textContent = "Generating PDF…";
+      const join = (arr) => arr.map(v => (v || "").trim()).filter(Boolean).join("\n");
+      const taxpayerAddress = join([
+        data.clientAddressLine1,
+        data.clientAddressLine2,
+        [data.clientAddressTown, data.clientAddressRegion].filter(Boolean).join(", ") + (data.clientAddressZip ? " " + data.clientAddressZip : "")
+      ]);
 
-          const pdfBytes = await fetch("/f2848.pdf").then(r => r.arrayBuffer());
+      const repAddress = join([
+        data.repAddr1,
+        data.repAddr2,
+        [data.repCity, data.repState].filter(Boolean).join(", ") + (data.repZip ? " " + data.repZip : "")
+      ]);
 
-          const pdfDoc = await PDFDocument.load(pdfBytes);
-          const form = pdfDoc.getForm();
+      // === COORDINATES (Page 1) ===
+      // These are starting points. You will adjust them using Calibrate grid.
+      // PDF coordinate system origin is bottom-left.
+      const POS = {
+        actsAuthorized_Description: { x: 70, y: 430, size: 9 },
+        actsAuthorized_TaxForm: { x: 280, y: 430, size: 9 },
+        actsAuthorized_Years: { x: 410, y: 430, size: 9 },
 
-          const set = (n, v) => v && form.getTextField(n).setText(v);
+        repBlock: { x: 70, y: 540, lineGap: 11, size: 9 },
+        repCAF: { x: 70, y: 490, size: 9 },
+        repFax: { x: 395, y: 490, size: 9 },
+        repPTIN: { x: 230, y: 490, size: 9 },
+        repTel: { x: 70, y: 505, size: 9 },
 
-          set("topmostSubform[0].Page1[0].TaxpayerName[0]", data.clientFirstName + " " + data.clientLastName);
-          set("topmostSubform[0].Page1[0].TaxpayerAddress[0]", taxpayerAddress);
+        taxpayerAddress: { x: 70, y: 660, lineGap: 11, size: 9 },
+        taxpayerName: { x: 70, y: 705, size: 10 },
+        taxpayerTIN: { x: 400, y: 660, size: 9 },
 
-          const idField = {
-            EIN: "topmostSubform[0].Page1[0].TaxpayerIDEIN[0]",
-            ITIN: "topmostSubform[0].Page1[0].TaxpayerIDITIN[0]",
-            SSN: "topmostSubform[0].Page1[0].TaxpayerIDSSN[0]"
-          }[data.taxpayerIdType] || "topmostSubform[0].Page1[0].TaxpayerIDSSN[0]";
-          set(idField, data.TaxpayerSSNITIN);
+        line5aAccessISP_Check: { x: 55, y: 330, size: 10 },
+        line5aSubAddRep_Check: { x: 55, y: 303, size: 10 }
+      };
 
-          set("topmostSubform[0].Page1[0].RepresentativesName1[0]",
-            data["2848_Rep_1_First_Name"] + " " + data["2848_Rep_1_Last_Name"]);
-          set("topmostSubform[0].Page1[0].RepresentativesAddress1[0]", repAddress);
-          set("topmostSubform[0].Page1[0].CAFNumber1[0]", data["2828_Rep_1_CAF"]);
-          set("topmostSubform[0].Page1[0].PTIN1[0]", data["2828_Rep_1_PTIN"]);
-          set("topmostSubform[0].Page1[0].TelephoneNo1[0]", data["2828_Rep_1_Telephone"]);
-          set("topmostSubform[0].Page1[0].FaxNo1[0]", data["2828_Rep_1_Fax"]);
-
-          set("topmostSubform[0].Page1[0].Table_Line3[0].BodyRow1[0].Description1[0]",
-            data.line3DescriptionOfMatter);
-          set("topmostSubform[0].Page1[0].Table_Line3[0].BodyRow1[0].TaxForm1[0]",
-            data.line3TaxFormNumber);
-          set("topmostSubform[0].Page1[0].Table_Line3[0].BodyRow1[0].Years1[0]",
-            yearRange);
-
-          if (data.line5aAccessRecords) {
-            form.getCheckBox("topmostSubform[0].Page1[0].AccessRecords[0]").check();
-          }
-          if (data.line5aSubstituteOrAddRep) {
-            form.getCheckBox("topmostSubform[0].Page1[0].SubtituteOrAdd[0]").check();
-          }
-
-          form.flatten();
-
-          const out = await pdfDoc.save();
-          const blob = new Blob([out], { type: "application/pdf" });
-          const url = URL.createObjectURL(blob);
-
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "Form-2848-filled.pdf";
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-
-          URL.revokeObjectURL(url);
-          status.textContent = "PDF generated.";
-        } catch (e) {
-          console.error(e);
-          status.textContent = "Error generating PDF. Check f2848.pdf availability.";
+      function drawMultiline(page, text, x, y, size, lineGap, font, color) {
+        const lines = (text || "").split("\n").map(s => s.trim()).filter(Boolean);
+        let cy = y;
+        for (const line of lines) {
+          page.drawText(line, { x, y: cy, size, font, color });
+          cy -= lineGap;
         }
+      }
+
+      function drawCheck(page, x, y, size, font) {
+        page.drawText("X", { x, y, size, font, color: rgb(0,0,0) });
+      }
+
+      function drawGrid(page, width, height, font) {
+        // light grid every 50 units + labels
+        for (let x = 0; x <= width; x += 50) {
+          page.drawLine({ start: { x, y: 0 }, end: { x, y: height }, thickness: 0.5, color: rgb(0.85,0.85,0.85) });
+          page.drawText(String(x), { x: x + 2, y: 2, size: 6, font, color: rgb(0.5,0.5,0.5) });
+        }
+        for (let y = 0; y <= height; y += 50) {
+          page.drawLine({ start: { x: 0, y }, end: { x: width, y }, thickness: 0.5, color: rgb(0.85,0.85,0.85) });
+          page.drawText(String(y), { x: 2, y: y + 2, size: 6, font, color: rgb(0.5,0.5,0.5) });
+        }
+      }
+
+      async function generate() {
+        status.textContent = "Generating PDF…";
+
+        const res = await fetch("/f2848.pdf");
+        if (!res.ok) throw new Error(`PDF fetch failed: ${res.status} ${res.statusText}`);
+        const pdfBytes = await res.arrayBuffer();
+
+        const pdfDoc = await PDFDocument.load(pdfBytes);
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        const page1 = pdfDoc.getPages()[0];
+        const { width, height } = page1.getSize();
+
+        if (document.getElementById("calibrate").checked) {
+          drawGrid(page1, width, height, font);
+        }
+
+        // Page 1 stamping
+        page1.drawText(taxpayerName, { x: POS.taxpayerName.x, y: POS.taxpayerName.y, size: POS.taxpayerName.size, font, color: rgb(0,0,0) });
+        drawMultiline(page1, taxpayerAddress, POS.taxpayerAddress.x, POS.taxpayerAddress.y, POS.taxpayerAddress.size, POS.taxpayerAddress.lineGap, font, rgb(0,0,0));
+        page1.drawText((data.TaxpayerSSNITIN || "").trim(), { x: POS.taxpayerTIN.x, y: POS.taxpayerTIN.y, size: POS.taxpayerTIN.size, font, color: rgb(0,0,0) });
+
+        drawMultiline(page1, join([repName, repAddress]), POS.repBlock.x, POS.repBlock.y, POS.repBlock.size, POS.repBlock.lineGap, font, rgb(0,0,0));
+        page1.drawText((data.repCAF || "").trim(), { x: POS.repCAF.x, y: POS.repCAF.y, size: POS.repCAF.size, font, color: rgb(0,0,0) });
+        page1.drawText((data.repPTIN || "").trim(), { x: POS.repPTIN.x, y: POS.repPTIN.y, size: POS.repPTIN.size, font, color: rgb(0,0,0) });
+        page1.drawText((data.repTel || "").trim(), { x: POS.repTel.x, y: POS.repTel.y, size: POS.repTel.size, font, color: rgb(0,0,0) });
+        page1.drawText((data.repFax || "").trim(), { x: POS.repFax.x, y: POS.repFax.y, size: POS.repFax.size, font, color: rgb(0,0,0) });
+
+        page1.drawText((data.line3DescriptionOfMatter || "").trim(), { x: POS.actsAuthorized_Description.x, y: POS.actsAuthorized_Description.y, size: POS.actsAuthorized_Description.size, font, color: rgb(0,0,0) });
+        page1.drawText((data.line3TaxFormNumber || "").trim(), { x: POS.actsAuthorized_TaxForm.x, y: POS.actsAuthorized_TaxForm.y, size: POS.actsAuthorized_TaxForm.size, font, color: rgb(0,0,0) });
+        page1.drawText(yearRange, { x: POS.actsAuthorized_Years.x, y: POS.actsAuthorized_Years.y, size: POS.actsAuthorized_Years.size, font, color: rgb(0,0,0) });
+
+        if (data.line5aAccessRecords) drawCheck(page1, POS.line5aAccessISP_Check.x, POS.line5aAccessISP_Check.y, POS.line5aAccessISP_Check.size, font);
+        if (data.line5aSubstituteOrAddRep) drawCheck(page1, POS.line5aSubAddRep_Check.x, POS.line5aSubAddRep_Check.y, POS.line5aSubAddRep_Check.size, font);
+
+        const out = await pdfDoc.save();
+        const blob = new Blob([out], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "Form-2848-filled.pdf";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        URL.revokeObjectURL(url);
+        status.textContent = "PDF generated.";
+      }
+
+      document.getElementById("generate").addEventListener("click", () => {
+        generate().catch((e) => {
+          console.error(e);
+          status.textContent = `Error: ${e && e.message ? e.message : String(e)}`;
+        });
       });
     })();
   </script>
-
 </body>
 </html>
