@@ -139,7 +139,8 @@
         try {
           status.textContent = "Generating PDF…";
 
-          const pdfBytes = await fetch("./f2848.pdf").then(r => r.arrayBuffer());
+          const pdfBytes = await fetch("/f2848.pdf").then(r => r.arrayBuffer());
+
           const pdfDoc = await PDFDocument.load(pdfBytes);
           const form = pdfDoc.getForm();
 
