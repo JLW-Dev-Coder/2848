@@ -1,1 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Form 2848 PDF Generator</title>
 
+  <style>
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 32px;
+      line-height: 1.5;
+    }
+    h1 {
+      margin-bottom: 8px;
+    }
+    .meta {
+      color: #555;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .pill {
+      background: #f3f4f6;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    button {
+      font-size: 16px;
+      padding: 12px 18px;
+      cursor: pointer;
+    }
+    #status {
+      margin-top: 16px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Form 2848 Generator</h1>
+  <div class="meta">
+    Generates the official IRS Form 2848 PDF using provided data.
+  </div>
+
+  <div class="grid" id="summary"></div>
+
+  <button id="generate">Generate PDF</button>
+  <div id="status">Ready.</div>
+
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script>
+    (function () {
+      const { PDFDocument } = PDFLib;
+      const qs = new URLSearchParams(window.location.search);
+
+      const get = (k) => (qs.get(k) || "").trim();
+      const getBool = (k) => ["1","true","yes","on"].includes((qs.get(k)||"").toLowerCase());
+
+      const data = {
+        clientFirstName: get("clientFirstName"),
+        clientLastName: get("clientLastName"),
+        clientAddressLine1: get("clientAddressLine1"),
+        clientAddressLine2: get("clientAddressLine2"),
+        clientAddressTown: get("clientAddressTown"),
+        clientAddressRegion: get("clientAddressRegion"),
+        clientAddressZip: get("clientAddressZip"),
+        TaxpayerSSNITIN: get("TaxpayerSSNITIN"),
+
+        "2848_Rep_1_First_Name": get("2848_Rep_1_First_Name"),
+        "2848_Rep_1_Last_Name": get("2848_Rep_1_Last_Name"),
+        "2828_Rep_1_Address_Line_1": get("2828_Rep_1_Address_Line_1"),
+        "2828_Rep_1_Address_Line_2": get("2828_Rep_1_Address_Line_2"),
+        "2828_Rep_1_Address_City": get("2828_Rep_1_Address_City"),
+        "2828_Rep_1_Address_State": get("2828_Rep_1_Address_State"),
+        "2828_Rep_1_Address_Zip": get("2828_Rep_1_Address_Zip"),
+        "2828_Rep_1_CAF": get("2828_Rep_1_CAF"),
+        "2828_Rep_1_PTIN": get("2828_Rep_1_PTIN"),
+        "2828_Rep_1_Telephone": get("2828_Rep_1_Telephone"),
+        "2828_Rep_1_Fax": get("2828_Rep_1_Fax"),
+
+        line3DescriptionOfMatter: get("line3DescriptionOfMatter"),
+        line3TaxFormNumber: get("line3TaxFormNumber"),
+        yearFrom: get("myOrganizationIRSCurrentTaxYear10ComplianceYears"),
+        yearTo: get("myOrganizationIRSCurrentTaxYear"),
+
+        line5aAccessRecords: getBool("line5aAccessRecords"),
+        line5aSubstituteOrAddRep: getBool("line5aSubstituteOrAddRep"),
+
+        taxpayerIdType: (get("taxpayerIdType") || "SSN").toUpperCase()
+      };
+
+      const join = (arr) => arr.filter(Boolean).join("\n");
+
+      const taxpayerAddress = join([
+        data.clientAddressLine1,
+        data.clientAddressLine2,
+        [data.clientAddressTown, data.clientAddressRegion].filter(Boolean).join(", ") +
+          (data.clientAddressZip ? " " + data.clientAddressZip : "")
+      ]);
+
+      const repAddress = join([
+        data["2828_Rep_1_Address_Line_1"],
+        data["2828_Rep_1_Address_Line_2"],
+        [data["2828_Rep_1_Address_City"], data["2828_Rep_1_Address_State"]].filter(Boolean).join(", ") +
+          (data["2828_Rep_1_Address_Zip"] ? " " + data["2828_Rep_1_Address_Zip"] : "")
+      ]);
+
+      const yearRange =
+        data.yearFrom && data.yearTo
+          ? data.yearFrom + " through " + data.yearTo
+          : data.yearFrom || data.yearTo || "";
+
+      const summary = document.getElementById("summary");
+      const pill = (label, value) => {
+        const d = document.createElement("div");
+        d.className = "pill";
+        d.textContent = value ? `${label}: ${value}` : `${label}: (blank)`;
+        summary.appendChild(d);
+      };
+
+      pill("Taxpayer", data.clientFirstName + " " + data.clientLastName);
+      pill("Representative", data["2848_Rep_1_First_Name"] + " " + data["2848_Rep_1_Last_Name"]);
+      pill("Tax Form", data.line3TaxFormNumber);
+      pill("Years", yearRange);
+
+      const status = document.getElementById("status");
+
+      document.getElementById("generate").addEventListener("click", async () => {
+        try {
+          status.textContent = "Generating PDF…";
+
+          const pdfBytes = await fetch("./f2848.pdf").then(r => r.arrayBuffer());
+          const pdfDoc = await PDFDocument.load(pdfBytes);
+          const form = pdfDoc.getForm();
+
+          const set = (n, v) => v && form.getTextField(n).setText(v);
+
+          set("topmostSubform[0].Page1[0].TaxpayerName[0]", data.clientFirstName + " " + data.clientLastName);
+          set("topmostSubform[0].Page1[0].TaxpayerAddress[0]", taxpayerAddress);
+
+          const idField = {
+            EIN: "topmostSubform[0].Page1[0].TaxpayerIDEIN[0]",
+            ITIN: "topmostSubform[0].Page1[0].TaxpayerIDITIN[0]",
+            SSN: "topmostSubform[0].Page1[0].TaxpayerIDSSN[0]"
+          }[data.taxpayerIdType] || "topmostSubform[0].Page1[0].TaxpayerIDSSN[0]";
+          set(idField, data.TaxpayerSSNITIN);
+
+          set("topmostSubform[0].Page1[0].RepresentativesName1[0]",
+            data["2848_Rep_1_First_Name"] + " " + data["2848_Rep_1_Last_Name"]);
+          set("topmostSubform[0].Page1[0].RepresentativesAddress1[0]", repAddress);
+          set("topmostSubform[0].Page1[0].CAFNumber1[0]", data["2828_Rep_1_CAF"]);
+          set("topmostSubform[0].Page1[0].PTIN1[0]", data["2828_Rep_1_PTIN"]);
+          set("topmostSubform[0].Page1[0].TelephoneNo1[0]", data["2828_Rep_1_Telephone"]);
+          set("topmostSubform[0].Page1[0].FaxNo1[0]", data["2828_Rep_1_Fax"]);
+
+          set("topmostSubform[0].Page1[0].Table_Line3[0].BodyRow1[0].Description1[0]",
+            data.line3DescriptionOfMatter);
+          set("topmostSubform[0].Page1[0].Table_Line3[0].BodyRow1[0].TaxForm1[0]",
+            data.line3TaxFormNumber);
+          set("topmostSubform[0].Page1[0].Table_Line3[0].BodyRow1[0].Years1[0]",
+            yearRange);
+
+          if (data.line5aAccessRecords) {
+            form.getCheckBox("topmostSubform[0].Page1[0].AccessRecords[0]").check();
+          }
+          if (data.line5aSubstituteOrAddRep) {
+            form.getCheckBox("topmostSubform[0].Page1[0].SubtituteOrAdd[0]").check();
+          }
+
+          form.flatten();
+
+          const out = await pdfDoc.save();
+          const blob = new Blob([out], { type: "application/pdf" });
+          const url = URL.createObjectURL(blob);
+
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "Form-2848-filled.pdf";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+
+          URL.revokeObjectURL(url);
+          status.textContent = "PDF generated.";
+        } catch (e) {
+          console.error(e);
+          status.textContent = "Error generating PDF. Check f2848.pdf availability.";
+        }
+      });
+    })();
+  </script>
+
+</body>
+</html>
