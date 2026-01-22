@@ -63,8 +63,10 @@
         clientFirstName: get("clientFirstName") || "{{clientFirstName}}",
         clientLastName: get("clientLastName") || "{{clientLastName}}",
 
-        line3DescriptionOfMatter: get("line3DescriptionOfMatter") || "Income Tax",
-        line3TaxFormNumber: get("line3TaxFormNumber") || "1040",
+        line3DescriptionOfMatter: get("line3DescriptionOfMatter") ||
+  "Income, Employment, Payroll, Excise, Estate, Gift, Civil Penalty, Sec. 4980H Shared Responsibility Payment",
+
+        line3TaxFormNumber: get("line3TaxFormNumber") || "940, 941, 720, 1040, 1120, 1120S",
 
         line5aAccessRecords: getBool("line5aAccessRecords") || true,
         line5aAuthorizeDisclosure: getBool("line5aAuthorizeDisclosure") || false,
@@ -87,20 +89,20 @@
         yearTo: get("myOrganizationIRSCurrentTaxYear") || "{{myOrganizationIRSCurrentTaxYear}}"
       };
 
-      const IRS_TEXT_SIZE = 7.5;
+      const IRS_TEXT_SIZE = 8.5;
 
       const POS = {
-        acts_desc_1: { x: 40,  y: 270, size: 9 },
-        acts_desc_2: { x: 40,  y: 245, size: 9 },
-        acts_desc_3: { x: 40,  y: 220, size: 9 },
+        acts_desc_1: { x: 40,  y: 270, size: IRS_TEXT_SIZE },
+        acts_desc_2: { x: 40,  y: 245, size: IRS_TEXT_SIZE },
+        acts_desc_3: { x: 40,  y: 220, size: IRS_TEXT_SIZE },
 
-        acts_form_1: { x: 330, y: 270, size: 9 },
-        acts_form_2: { x: 330, y: 245, size: 9 },
-        acts_form_3: { x: 330, y: 220, size: 9 },
+        acts_form_1: { x: 330, y: 270, size: IRS_TEXT_SIZE },
+        acts_form_2: { x: 330, y: 245, size: IRS_TEXT_SIZE },
+        acts_form_3: { x: 330, y: 220, size: IRS_TEXT_SIZE },
 
-        acts_year_1: { x: 450, y: 270, size: 9 },
-        acts_year_2: { x: 450, y: 245, size: 9 },
-        acts_year_3: { x: 450, y: 220, size: 9 },
+        acts_year_1: { x: 450, y: 270, size: IRS_TEXT_SIZE },
+        acts_year_2: { x: 450, y: 245, size: IRS_TEXT_SIZE },
+        acts_year_3: { x: 450, y: 220, size: IRS_TEXT_SIZE },
 
         line5aAccessISP_Check:           { x: 210, y: 130 },
         line5aAuthorizeDisclosure_Check: { x: 55,  y: 130 },
@@ -109,10 +111,10 @@
 
         repBlock: { x: 40, y: 565, lineGap: 11, size: IRS_TEXT_SIZE },
 
-        repCAF:  { x: 405, y: 540, size: 9 },
-        repPTIN: { x: 405, y: 525, size: 9 },
-        repTel:  { x: 405, y: 510, size: 9 },
-        repFax:  { x: 405, y: 495, size: 9 },
+        repCAF:  { x: 400, y: 575, size: IRS_TEXT_SIZE },
+        repPTIN: { x: 405, y: 525, size: IRS_TEXT_SIZE },
+        repTel:  { x: 405, y: 510, size: IRS_TEXT_SIZE },
+        repFax:  { x: 405, y: 495, size: IRS_TEXT_SIZE },
 
         taxpayerNameAddressBlock: { x: 40, y: 640, lineGap: 9, size: IRS_TEXT_SIZE },
         taxpayerTIN: { x: 350, y: 640, size: IRS_TEXT_SIZE }
