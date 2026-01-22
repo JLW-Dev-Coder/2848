@@ -56,6 +56,14 @@
 
       const V = get("v") || String(Date.now());
 
+      function todayTokenYYYY_MMDD() {
+        const d = new Date();
+        const y = String(d.getFullYear());
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        return `${y}_${m}${dd}`; // e.g., 2026_0122
+      }
+
       const data = {
         TaxpayerSSNITIN: get("TaxpayerSSNITIN"),
 
@@ -95,7 +103,8 @@
 
       const fileClientLast = (data.clientLastName || "ClientLastName").trim() || "ClientLastName";
       const fileClientFirst = (data.clientFirstName || "ClientFirstName").trim() || "ClientFirstName";
-      const fileNameTemplate = `Form_2848_${fileClientLast}_${fileClientFirst}_DateSigned_YYYY_MMDD`;
+      const fileDateToken = todayTokenYYYY_MMDD();
+      const fileNameTemplate = `Form_2848_${fileClientLast}_${fileClientFirst}_DateSigned_${fileDateToken}`;
 
       document.getElementById("buildMeta").innerHTML =
         `<ol style="margin:0; padding-left:18px;">
@@ -352,22 +361,17 @@
         // ===== ROW 1 ONLY, WITH NESTED LINE 2 INSIDE EACH CELL =====
         const lineGap = 9;
 
-        // Cell 1 (Description of matter): two lines at row1 y, then y-lineGap (still within cell 1)
         const matterLines = splitMatter(data.line3DescriptionOfMatter);
         if (matterLines[0]) page1.drawText(matterLines[0], { x: ax(POS.acts_desc_1.x), y: ay(POS.acts_desc_1.y), size: POS.acts_desc_1.size, font, color: rgb(0,0,0) });
         if (matterLines[1]) page1.drawText(matterLines[1], { x: ax(POS.acts_desc_1.x), y: ay(POS.acts_desc_1.y) - lineGap, size: POS.acts_desc_1.size, font, color: rgb(0,0,0) });
 
-        // Cell 2 (Tax form number): two lines at row1 y, then y-lineGap
         const formLines = splitForms(data.line3TaxFormNumber);
         if (formLines[0]) page1.drawText(formLines[0], { x: ax(POS.acts_form_1.x), y: ay(POS.acts_form_1.y), size: POS.acts_form_1.size, font, color: rgb(0,0,0) });
         if (formLines[1]) page1.drawText(formLines[1], { x: ax(POS.acts_form_1.x), y: ay(POS.acts_form_1.y) - lineGap, size: POS.acts_form_1.size, font, color: rgb(0,0,0) });
 
-        // Cell 3 (Years/period): two lines at row1 y, then y-lineGap
         const yearsLines = splitYears(periodText);
         if (yearsLines[0]) page1.drawText(yearsLines[0], { x: ax(POS.acts_year_1.x), y: ay(POS.acts_year_1.y), size: POS.acts_year_1.size, font, color: rgb(0,0,0) });
         if (yearsLines[1]) page1.drawText(yearsLines[1], { x: ax(POS.acts_year_1.x), y: ay(POS.acts_year_1.y) - lineGap, size: POS.acts_year_1.size, font, color: rgb(0,0,0) });
-
-        // Leave rows 2/3 blank intentionally.
 
         if (data.line5aAuthorizeDisclosure) drawCheck(page1, ax(POS.line5aAuthorizeDisclosure_Check.x), ay(POS.line5aAuthorizeDisclosure_Check.y), font);
         if (data.line5aAccessRecords)      drawCheck(page1, ax(POS.line5aAccessISP_Check.x),          ay(POS.line5aAccessISP_Check.y),          font);
