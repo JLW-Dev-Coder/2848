@@ -7,7 +7,7 @@
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 28px; line-height: 1.45; }
     h1 { margin: 0 0 6px; }
-    .meta { color: #555; font-size: 14px; margin: 0 0 18px; }
+    .meta { color: #555; font-size: 12px; margin: 0 0 18px; }
     .row { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 14px; }
     .pill { background: #f3f4f6; border-radius: 999px; font-size: 12px; max-width: 100%; overflow: hidden; padding: 6px 10px; text-overflow: ellipsis; white-space: nowrap; }
     .btn { cursor: pointer; padding: 10px 14px; }
@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2 style="color:red">RUNNING BUILD XYZ</h2>
+  <h2 style="color:red">RUNNING BUILD XYZ</h2>
 
   <h1>Form 2848 Generator</h1>
   <p class="meta" id="buildMeta">Stamped onto a flattened IRS PDF (no form fields required).</p>
@@ -33,8 +33,7 @@
     (function () {
       const { PDFDocument, rgb, StandardFonts } = PDFLib;
 
-      // Bump this any time you deploy changes. It will show on-page and in the PDF.
-      const BUILD_ID = "2848-align-2026-01-22-b";
+      const BUILD_ID = "2848-align-2026-01-22-c";
 
       const qs = new URLSearchParams(window.location.search);
       const get = (k) => (qs.get(k) || "").trim();
@@ -49,8 +48,6 @@
         stamp: get("stamp") === "1"
       };
 
-      // Cache-busting for Cloudflare + browser caches.
-      // Use ?v=anything on the page URL; it will also bust the PDF fetch.
       const V = get("v") || String(Date.now());
 
       document.getElementById("buildMeta").textContent =
@@ -90,8 +87,9 @@
         yearTo: get("myOrganizationIRSCurrentTaxYear") || "{{myOrganizationIRSCurrentTaxYear}}"
       };
 
-      // Coordinates are in PDF points; origin is bottom-left.
-      // Taxpayer name + address share ONE box -> one multiline block anchor.
+      // Smaller font to better match IRS printed text.
+      const IRS_TEXT_SIZE = 7.5;
+
       const POS = {
         acts_desc_1: { x: 40,  y: 270, size: 9 },
         acts_desc_2: { x: 40,  y: 245, size: 9 },
@@ -117,8 +115,9 @@
         repTel:  { x: 405, y: 510, size: 9 },
         repFax:  { x: 405, y: 495, size: 9 },
 
-        taxpayerNameAddressBlock: { x: 40, y: 640, lineGap: 11, size: 9 },
-        taxpayerTIN: { x: 400, y: 650, size: 9 }
+        // Adjusted: using smaller size to match IRS print.
+        taxpayerNameAddressBlock: { x: 40, y: 640, lineGap: 9, size: IRS_TEXT_SIZE },
+        taxpayerTIN: { x: 400, y: 650, size: IRS_TEXT_SIZE }
       };
 
       const status = document.getElementById("status");
@@ -144,11 +143,22 @@
         [data.repCity, data.repState].filter(Boolean).join(", ") + (data.repZip ? " " + data.repZip : "")
       ]);
 
+      // FIX: Put Address 1 + Address 2 on the SAME LINE.
+      // If Address 2 is blank, it won’t add a trailing space.
+      const taxpayerAddr12 = [data.clientAddressLine1, data.clientAddressLine2].filter(Boolean).join(" ").trim();
+
+      const taxpayerCityStateZip =
+        [data.clientAddressTown, data.clientAddressRegion].filter(Boolean).join(", ") +
+        (data.clientAddressZip ? " " + data.clientAddressZip : "");
+
+      // Now the block is:
+      // 1) Name
+      // 2) Address1 Address2
+      // 3) City, ST ZIP
       const taxpayerNameAddress = join([
         taxpayerName,
-        data.clientAddressLine1,
-        data.clientAddressLine2,
-        [data.clientAddressTown, data.clientAddressRegion].filter(Boolean).join(", ") + (data.clientAddressZip ? " " + data.clientAddressZip : "")
+        taxpayerAddr12,
+        taxpayerCityStateZip
       ]);
 
       pill("Build", BUILD_ID);
@@ -240,7 +250,6 @@
       async function generate() {
         status.textContent = "Generating PDF…";
 
-        // Cache-bust the PDF fetch too, and ask browser/CDN not to cache.
         const pdfUrl = `./f2848.pdf?v=${encodeURIComponent(V)}`;
         const res = await fetch(pdfUrl, { cache: "no-store" });
         if (!res.ok) throw new Error(`PDF fetch failed: ${res.status} ${res.statusText}`);
@@ -250,7 +259,6 @@
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const page1 = pdfDoc.getPages()[0];
 
-        // Normalize coordinate space (prevents CropBox shifts)
         const { width, height } = page1.getSize();
         page1.setCropBox(0, 0, width, height);
 
