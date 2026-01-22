@@ -48,15 +48,15 @@
 
         repFirst: get("2848_Rep_1_First_Name") || "{{2848_Rep_1_First_Name}}",
         repLast: get("2848_Rep_1_Last_Name") || "{{2848_Rep_1_Last_Name}}",
-        repAddr1: get("2828_Rep_1_Address_Line_1") || "{{2828_Rep_1_Address_Line_1}}",
-        repAddr2: get("2828_Rep_1_Address_Line_2") || "{{2828_Rep_1_Address_Line_2}}",
-        repCity: get("2828_Rep_1_Address_City") || "{{2828_Rep_1_Address_City}}",
-        repState: get("2828_Rep_1_Address_State") || "{{2828_Rep_1_Address_State}}",
-        repZip: get("2828_Rep_1_Address_Zip") || "{{2828_Rep_1_Address_Zip}}",
-        repCAF: get("2828_Rep_1_CAF") || "{{2828_Rep_1_CAF}}",
-        repPTIN: get("2828_Rep_1_PTIN") || "{{2828_Rep_1_PTIN}}",
-        repTel: get("2828_Rep_1_Telephone") || "{{2828_Rep_1_Telephone}}",
-        repFax: get("2828_Rep_1_Fax") || "{{2828_Rep_1_Fax}}",
+        repAddr1: get("2848_Rep_1_Address_Line_1") || "{{2848_Rep_1_Address_Line_1}}",
+        repAddr2: get("2848_Rep_1_Address_Line_2") || "{{2848_Rep_1_Address_Line_2}}",
+        repCity: get("2848_Rep_1_Address_City") || "{{2848_Rep_1_Address_City}}",
+        repState: get("2848_Rep_1_Address_State") || "{{2848_Rep_1_Address_State}}",
+        repZip: get("2848_Rep_1_Address_Zip") || "{{2848_Rep_1_Address_Zip}}",
+        repCAF: get("2848_Rep_1_CAF") || "{{2848_Rep_1_CAF}}",
+        repPTIN: get("2848_Rep_1_PTIN") || "{{2848_Rep_1_PTIN}}",
+        repTel: get("2848_Rep_1_Telephone") || "{{2848_Rep_1_Telephone}}",
+        repFax: get("2848_Rep_1_Fax") || "{{2848_Rep_1_Fax}}",
 
         line3DescriptionOfMatter: get("line3DescriptionOfMatter") || "Income Tax",
         line3TaxFormNumber: get("line3TaxFormNumber") || "1040",
@@ -70,31 +70,31 @@
       };
 
       const POS = {
-        acts_desc_1: { x: 40,  y: 265, size: 9 },
-        acts_desc_2: { x: 40,  y: 235, size: 9 },
-        acts_desc_3: { x: 40,  y: 205, size: 9 },
+        acts_desc_1: { x: 40,  y: 273, size: 9 },
+        acts_desc_2: { x: 40,  y: 243, size: 9 },
+        acts_desc_3: { x: 40,  y: 213, size: 9 },
 
-        acts_form_1: { x: 330, y: 265, size: 9 },
-        acts_form_2: { x: 330, y: 235, size: 9 },
-        acts_form_3: { x: 330, y: 205, size: 9 },
+        acts_form_1: { x: 330, y: 273, size: 9 },
+        acts_form_2: { x: 330, y: 243, size: 9 },
+        acts_form_3: { x: 330, y: 213, size: 9 },
 
-        acts_year_1: { x: 450, y: 265, size: 9 },
-        acts_year_2: { x: 450, y: 235, size: 9 },
-        acts_year_3: { x: 450, y: 205, size: 9 },
+        acts_year_1: { x: 450, y: 273, size: 9 },
+        acts_year_2: { x: 450, y: 243, size: 9 },
+        acts_year_3: { x: 450, y: 213, size: 9 },
 
-        line5aAuthorizeDisclosure_Check: { x: 55,  y: 135, size: 10 },
-        line5aAccessISP_Check:          { x: 210, y: 135, size: 10 },
-        line5aSubAddRep_Check:          { x: 410, y: 135, size: 10 },
-        line5aSignReturn_Check:         { x: 560, y: 135, size: 10 },
+        line5aAuthorizeDisclosure_Check: { x: 55,  y: 135 },
+        line5aAccessISP_Check:          { x: 210, y: 135 },
+        line5aSubAddRep_Check:          { x: 410, y: 135 },
+        line5aSignReturn_Check:         { x: 560, y: 135 },
 
-        repBlock: { x: 70, y: 565, lineGap: 11, size: 9 },
+        repBlock: { x: 70, y: 540, lineGap: 11, size: 9 },
 
-        repCAF:  { x: 405, y: 590, size: 9 },
-        repFax:  { x: 405, y: 550, size: 9 },
-        repPTIN: { x: 405, y: 578, size: 9 },
-        repTel:  { x: 405, y: 564, size: 9 },
+        repCAF:  { x: 405, y: 585, size: 9 },
+        repPTIN: { x: 405, y: 570, size: 9 },
+        repTel:  { x: 405, y: 555, size: 9 },
+        repFax:  { x: 405, y: 540, size: 9 },
 
-        taxpayerAddress: { x: 70, y: 660, lineGap: 11, size: 9 },
+        taxpayerAddress: { x: 70, y: 645, lineGap: 11, size: 9 },
         taxpayerName: { x: 70, y: 685, size: 10 },
         taxpayerTIN: { x: 400, y: 660, size: 9 }
       };
@@ -142,8 +142,8 @@
         }
       }
 
-      function drawCheck(page, x, y, size, font) {
-        page.drawText("X", { x, y, size, font, color: rgb(0,0,0) });
+      function drawCheck(page, x, y, font) {
+        page.drawText("X", { x, y, size: 8, font, color: rgb(0,0,0) });
       }
 
       async function generate() {
@@ -181,10 +181,10 @@
           page1.drawText(clamp(row.years, 22), { x: POS[`acts_year_${idx}`].x, y: POS[`acts_year_${idx}`].y, size: POS[`acts_year_${idx}`].size, font, color: rgb(0,0,0) });
         });
 
-        if (data.line5aAuthorizeDisclosure) drawCheck(page1, POS.line5aAuthorizeDisclosure_Check.x, POS.line5aAuthorizeDisclosure_Check.y, POS.line5aAuthorizeDisclosure_Check.size, font);
-        if (data.line5aAccessRecords)      drawCheck(page1, POS.line5aAccessISP_Check.x,          POS.line5aAccessISP_Check.y,          POS.line5aAccessISP_Check.size, font);
-        if (data.line5aSubstituteOrAddRep) drawCheck(page1, POS.line5aSubAddRep_Check.x,          POS.line5aSubAddRep_Check.y,          POS.line5aSubAddRep_Check.size, font);
-        if (data.line5aSignReturn)         drawCheck(page1, POS.line5aSignReturn_Check.x,         POS.line5aSignReturn_Check.y,         POS.line5aSignReturn_Check.size, font);
+        if (data.line5aAuthorizeDisclosure) drawCheck(page1, POS.line5aAuthorizeDisclosure_Check.x, POS.line5aAuthorizeDisclosure_Check.y, font);
+        if (data.line5aAccessRecords)      drawCheck(page1, POS.line5aAccessISP_Check.x,          POS.line5aAccessISP_Check.y,          font);
+        if (data.line5aSubstituteOrAddRep) drawCheck(page1, POS.line5aSubAddRep_Check.x,          POS.line5aSubAddRep_Check.y,          font);
+        if (data.line5aSignReturn)         drawCheck(page1, POS.line5aSignReturn_Check.x,         POS.line5aSignReturn_Check.y,         font);
 
         const out = await pdfDoc.save();
         const blob = new Blob([out], { type: "application/pdf" });
