@@ -33,7 +33,7 @@
     (function () {
       const { PDFDocument, rgb, StandardFonts } = PDFLib;
 
-      const BUILD_ID = "2848-align-2026-01-22-c";
+      const BUILD_ID = "2848-align-2026-01-22-d";
 
       const qs = new URLSearchParams(window.location.search);
       const get = (k) => (qs.get(k) || "").trim();
@@ -87,7 +87,6 @@
         yearTo: get("myOrganizationIRSCurrentTaxYear") || "{{myOrganizationIRSCurrentTaxYear}}"
       };
 
-      // Smaller font to better match IRS printed text.
       const IRS_TEXT_SIZE = 7.5;
 
       const POS = {
@@ -115,7 +114,6 @@
         repTel:  { x: 405, y: 510, size: 9 },
         repFax:  { x: 405, y: 495, size: 9 },
 
-        // Adjusted: using smaller size to match IRS print.
         taxpayerNameAddressBlock: { x: 40, y: 640, lineGap: 9, size: IRS_TEXT_SIZE },
         taxpayerTIN: { x: 350, y: 640, size: IRS_TEXT_SIZE }
       };
@@ -137,24 +135,24 @@
       const repName = [data.repFirst, data.repLast].filter(Boolean).join(" ").trim();
       const yearRange = (data.yearFrom && data.yearTo) ? `${data.yearFrom} through ${data.yearTo}` : (data.yearFrom || data.yearTo || "");
 
-      const repAddress = join([
-        data.repAddr1,
-        data.repAddr2,
-        [data.repCity, data.repState].filter(Boolean).join(", ") + (data.repZip ? " " + data.repZip : "")
+      // Combine Rep Address 1 + 2 on SAME line, then City/State/Zip on next.
+      const repAddr12 = [data.repAddr1, data.repAddr2].filter(Boolean).join(" ").trim();
+      const repCityStateZip =
+        [data.repCity, data.repState].filter(Boolean).join(", ") +
+        (data.repZip ? " " + data.repZip : "");
+
+      const repBlockText = join([
+        repName,
+        repAddr12,
+        repCityStateZip
       ]);
 
-      // FIX: Put Address 1 + Address 2 on the SAME LINE.
-      // If Address 2 is blank, it won’t add a trailing space.
+      // Combine Taxpayer Address 1 + 2 on SAME line, then City/State/Zip on next.
       const taxpayerAddr12 = [data.clientAddressLine1, data.clientAddressLine2].filter(Boolean).join(" ").trim();
-
       const taxpayerCityStateZip =
         [data.clientAddressTown, data.clientAddressRegion].filter(Boolean).join(", ") +
         (data.clientAddressZip ? " " + data.clientAddressZip : "");
 
-      // Now the block is:
-      // 1) Name
-      // 2) Address1 Address2
-      // 3) City, ST ZIP
       const taxpayerNameAddress = join([
         taxpayerName,
         taxpayerAddr12,
@@ -266,7 +264,7 @@
         if (DEBUG.labels) drawAnchorLabels(page1, font);
 
         if (DEBUG.stamp) {
-          page1.drawText(`BUILD=${BUILD_ID} taxpayerY=${POS.taxpayerNameAddressBlock.y} ox=${DEBUG.ox} oy=${DEBUG.oy}`, {
+          page1.drawText(`BUILD=${BUILD_ID} ox=${DEBUG.ox} oy=${DEBUG.oy}`, {
             x: 12,
             y: 40,
             size: 10,
@@ -295,7 +293,7 @@
 
         drawMultiline(
           page1,
-          join([repName, repAddress]),
+          repBlockText,
           ax(POS.repBlock.x),
           ay(POS.repBlock.y),
           POS.repBlock.size,
