@@ -15,13 +15,13 @@
   </style>
 </head>
 <body>
-  <h1>Form 2848 Generator (p1)</h1>
+  <h1>Form 2848 Generator</h1>
   <p class="meta" id="buildMeta"></p>
 
   <div class="row" id="summary"></div>
 
   <div class="row">
-    <button class="btn" id="generate" type="button">Generate PDF</button>
+    <button class="btn" id="generate" type="button">Generate PDF  (p1)</button>
   </div>
 
   <div id="status">Ready.</div>
@@ -104,7 +104,7 @@
       const fileClientLast = (data.clientLastName || "ClientLastName").trim() || "ClientLastName";
       const fileClientFirst = (data.clientFirstName || "ClientFirstName").trim() || "ClientFirstName";
       const fileDateToken = todayTokenYYYY_MMDD();
-      const fileNameTemplate = `Form_2848_${fileClientLast}_${fileClientFirst}_DateSigned_${fileDateToken}`;
+      const fileNameTemplate = `Form_2848_${fileClientLast}_${fileClientFirst}_DateSigned_${fileDateToken}_p1`;
 
       document.getElementById("buildMeta").innerHTML =
         `<ol style="margin:0; padding-left:18px;">
