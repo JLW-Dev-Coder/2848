@@ -16,7 +16,7 @@
 </head>
 <body>
   <h1>Form 2848 Generator</h1>
-  <p class="meta" id="buildMeta">Stamped onto a flattened IRS PDF (no form fields required).</p>
+  <p class="meta" id="buildMeta"></p>
 
   <div class="row" id="summary"></div>
 
@@ -56,9 +56,6 @@
 
       const V = get("v") || String(Date.now());
 
-      document.getElementById("buildMeta").textContent =
-        "Instructions: 1) Complete all required fields above (including ClientLastName and ClientFirstName). 2) Click Generate PDF to download Page 1 (stamped/filled). 3) Open and e-sign Page 2 (Part II): sign directly under the client signature line, using the same representative details entered above. 4) Save and upload using this filename format: Form_2848_ClientLastName_ClientFirstName_DateSigned_YYYY_MMDD.";
-
       const data = {
         TaxpayerSSNITIN: get("TaxpayerSSNITIN"),
 
@@ -95,6 +92,18 @@
         yearFrom: get("myOrganizationIRSCurrentTaxYear10ComplianceYears"),
         yearTo: get("myOrganizationIRSCurrentTaxYear")
       };
+
+      const fileClientLast = (data.clientLastName || "ClientLastName").trim() || "ClientLastName";
+      const fileClientFirst = (data.clientFirstName || "ClientFirstName").trim() || "ClientFirstName";
+      const fileNameTemplate = `Form_2848_${fileClientLast}_${fileClientFirst}_DateSigned_YYYY_MMDD`;
+
+      document.getElementById("buildMeta").innerHTML =
+        `<ol style="margin:0; padding-left:18px;">
+          <li>Complete all required fields above (including ClientLastName and ClientFirstName).</li>
+          <li>Click <b>Generate PDF</b> to download Page 1.</li>
+          <li>Open Page 2 and e-sign <b>Part II</b>: sign directly under the client’s signature line using the same representative details entered above.</li>
+          <li>Save and upload using this filename format: <b>${fileNameTemplate}</b>.</li>
+        </ol>`;
 
       const IRS_TEXT_SIZE = 8.5;
 
@@ -280,7 +289,7 @@
 
       const periodText = formatPeriod(data.yearFrom, data.yearTo);
 
-      pill("Build", BUILD_ID);
+      pill("Filename", fileNameTemplate);
       pill("Period", periodText);
       pill("Representative", repName);
       pill("Taxpayer", taxpayerName);
