@@ -33,7 +33,7 @@
     (function () {
       const { PDFDocument, rgb, StandardFonts } = PDFLib;
 
-      const BUILD_ID = "2848-align-2026-01-22-f";
+      const BUILD_ID = "2848-align-2026-01-22-h";
 
       const qs = new URLSearchParams(window.location.search);
 
@@ -101,16 +101,19 @@
       const IRS_TEXT_SIZE = 8.5;
 
       const POS = {
+        // Row 1 anchors
         acts_desc_1: { x: 40,  y: 230, size: IRS_TEXT_SIZE },
-        acts_desc_2: { x: 40,  y: 205, size: IRS_TEXT_SIZE },
-        acts_desc_3: { x: 40,  y: 180, size: IRS_TEXT_SIZE },
-
         acts_form_1: { x: 330, y: 230, size: IRS_TEXT_SIZE },
-        acts_form_2: { x: 330, y: 205, size: IRS_TEXT_SIZE },
-        acts_form_3: { x: 330, y: 180, size: IRS_TEXT_SIZE },
-
         acts_year_1: { x: 474, y: 230, size: IRS_TEXT_SIZE },
+
+        // Row 2 anchors (we will KEEP years in column 3 on row 1 by nesting line 2)
+        acts_desc_2: { x: 40,  y: 205, size: IRS_TEXT_SIZE },
+        acts_form_2: { x: 330, y: 205, size: IRS_TEXT_SIZE },
         acts_year_2: { x: 474, y: 205, size: IRS_TEXT_SIZE },
+
+        // Row 3 anchors (unused, left blank)
+        acts_desc_3: { x: 40,  y: 180, size: IRS_TEXT_SIZE },
+        acts_form_3: { x: 330, y: 180, size: IRS_TEXT_SIZE },
         acts_year_3: { x: 474, y: 180, size: IRS_TEXT_SIZE },
 
         line5aAccessISP_Check:           { x: 230, y: 137 },
@@ -138,8 +141,6 @@
         d.textContent = value ? `${label}: ${value}` : `${label}: (blank)`;
         summary.appendChild(d);
       };
-
-      const join = (arr) => arr.map(v => (v || "").trim()).filter(Boolean).join("\n");
 
       function ax(x) { return x + DEBUG.ox; }
       function ay(y) { return y + DEBUG.oy; }
@@ -169,32 +170,18 @@
 
         for (let x = 0; x <= width; x += step) {
           const isMajor = (x % (step * 2) === 0);
-          page.drawLine({
-            start: { x, y: 0 },
-            end: { x, y: height },
-            thickness: isMajor ? thick : thin,
-            color: rgb(0.75, 0.75, 0.75)
-          });
+          page.drawLine({ start: { x, y: 0 }, end: { x, y: height }, thickness: isMajor ? thick : thin, color: rgb(0.75, 0.75, 0.75) });
           page.drawText(String(x), { x: Math.min(x + 2, width - 18), y: height - 12, size: 7, font, color: rgb(0.35, 0.35, 0.35) });
         }
 
         for (let y = 0; y <= height; y += step) {
           const isMajor = (y % (step * 2) === 0);
-          page.drawLine({
-            start: { x: 0, y },
-            end: { x: width, y },
-            thickness: isMajor ? thick : thin,
-            color: rgb(0.75, 0.75, 0.75)
-          });
+          page.drawLine({ start: { x: 0, y }, end: { x: width, y }, thickness: isMajor ? thick : thin, color: rgb(0.75, 0.75, 0.75) });
           page.drawText(String(y), { x: 2, y: Math.min(y + 2, height - 10), size: 7, font, color: rgb(0.35, 0.35, 0.35) });
         }
 
         page.drawText(`GRID step=${step} ox=${DEBUG.ox} oy=${DEBUG.oy} BUILD=${BUILD_ID}`, {
-          x: 12,
-          y: height - 26,
-          size: 9,
-          font,
-          color: rgb(0.2, 0.2, 0.2)
+          x: 12, y: height - 26, size: 9, font, color: rgb(0.2, 0.2, 0.2)
         });
       }
 
@@ -203,12 +190,10 @@
           ["acts_desc_1", POS.acts_desc_1.x, POS.acts_desc_1.y],
           ["acts_form_1", POS.acts_form_1.x, POS.acts_form_1.y],
           ["acts_year_1", POS.acts_year_1.x, POS.acts_year_1.y],
-          ["line5aAccessISP_Check", POS.line5aAccessISP_Check.x, POS.line5aAccessISP_Check.y],
+          ["acts_desc_2", POS.acts_desc_2.x, POS.acts_desc_2.y],
+          ["acts_form_2", POS.acts_form_2.x, POS.acts_form_2.y],
+          ["acts_year_2", POS.acts_year_2.x, POS.acts_year_2.y],
           ["repBlock", POS.repBlock.x, POS.repBlock.y],
-          ["repCAF", POS.repCAF.x, POS.repCAF.y],
-          ["repFax", POS.repFax.x, POS.repFax.y],
-          ["repPTIN", POS.repPTIN.x, POS.repPTIN.y],
-          ["repTel", POS.repTel.x, POS.repTel.y],
           ["taxpayerNameAddressBlock", POS.taxpayerNameAddressBlock.x, POS.taxpayerNameAddressBlock.y],
           ["taxpayerTIN", POS.taxpayerTIN.x, POS.taxpayerTIN.y]
         ];
@@ -221,46 +206,6 @@
         });
       }
 
-      // Wrap helpers
-      function wrapWords(text, maxChars) {
-        const words = String(text || "").trim().split(/\s+/).filter(Boolean);
-        const lines = [];
-        let line = "";
-        for (const w of words) {
-          const next = line ? (line + " " + w) : w;
-          if (next.length <= maxChars) {
-            line = next;
-          } else {
-            if (line) lines.push(line);
-            line = w;
-          }
-        }
-        if (line) lines.push(line);
-        return lines;
-      }
-
-      function wrapCsv(text, maxChars) {
-        const parts = String(text || "")
-          .split(",")
-          .map(s => s.trim())
-          .filter(Boolean);
-
-        const lines = [];
-        let line = "";
-        for (const p of parts) {
-          const token = p; // no trailing comma in token
-          const next = line ? (line + ", " + token) : token;
-          if (next.length <= maxChars) {
-            line = next;
-          } else {
-            if (line) lines.push(line);
-            line = token;
-          }
-        }
-        if (line) lines.push(line);
-        return lines;
-      }
-
       function formatPeriod(yearFrom, yearTo) {
         const a = String(yearFrom || "").trim();
         const b = String(yearTo || "").trim();
@@ -268,39 +213,78 @@
         return a || b || "";
       }
 
-      // SSN formatting: XXXXXXXX -> XXX-XX-XXXX (also handles already-dashed)
       function formatTin(v) {
         const raw = String(v || "").trim();
         if (!raw) return "";
         const digits = raw.replace(/\D/g, "");
         if (digits.length === 9) return `${digits.slice(0,3)}-${digits.slice(3,5)}-${digits.slice(5)}`;
-        return raw; // leave ITIN/other formats as-is
+        return raw;
+      }
+
+      // Split helpers (explicit, deterministic)
+      function splitMatter(s) {
+        const text = String(s || "").trim();
+        if (!text) return ["", ""];
+        const targetBreak = "Estate";
+        const idx = text.indexOf(targetBreak);
+        if (idx > 0) {
+          const line1 = text.slice(0, idx).trim().replace(/,\s*$/, "") + ",";
+          const line2 = text.slice(idx).trim();
+          return [line1, line2];
+        }
+        // fallback: break at nearest comma around the middle
+        const mid = Math.floor(text.length / 2);
+        const left = text.lastIndexOf(",", mid);
+        const right = text.indexOf(",", mid);
+        const cut = (right !== -1 && (mid - left) > (right - mid)) ? right : left;
+        if (cut > 0) return [text.slice(0, cut + 1).trim(), text.slice(cut + 1).trim()];
+        return [text, ""];
+      }
+
+      function splitForms(s) {
+        const text = String(s || "").trim();
+        if (!text) return ["", ""];
+        // exact split you requested
+        const line1 = "940, 941, 720";
+        const line2 = "1040, 1120, 1120S";
+        // if custom input differs, try to split after third comma
+        if (text.replace(/\s+/g, " ") === `${line1}, ${line2}`) return [line1, line2];
+        const parts = text.split(",").map(p => p.trim()).filter(Boolean);
+        if (parts.length <= 3) return [parts.join(", "), ""];
+        return [parts.slice(0, 3).join(", "), parts.slice(3).join(", ")];
+      }
+
+      function splitYears(s) {
+        const text = String(s || "").trim();
+        if (!text) return ["", ""];
+        // Split "YYYY through YYYY" into two lines
+        const token = "through";
+        const i = text.indexOf(token);
+        if (i !== -1) {
+          const a = text.slice(0, i).trim();
+          const b = text.slice(i + token.length).trim();
+          return [a, `through ${b}`.trim()];
+        }
+        // If only one year, keep single line
+        return [text, ""];
       }
 
       const taxpayerName = [data.clientFirstName, data.clientLastName].filter(Boolean).join(" ").trim();
       const repName = [data.repFirst, data.repLast].filter(Boolean).join(" ").trim();
 
       const repAddr12 = [data.repAddr1, data.repAddr2].filter(Boolean).join(" ").trim();
-      const repCityStateZip =
-        [data.repCity, data.repState].filter(Boolean).join(", ") +
-        (data.repZip ? " " + data.repZip : "");
-
-      const repBlockText = join([repName, repAddr12, repCityStateZip]);
+      const repCityStateZip = [data.repCity, data.repState].filter(Boolean).join(", ") + (data.repZip ? " " + data.repZip : "");
+      const repBlockText = [repName, repAddr12, repCityStateZip].map(s => (s || "").trim()).filter(Boolean).join("\n");
 
       const taxpayerAddr12 = [data.clientAddressLine1, data.clientAddressLine2].filter(Boolean).join(" ").trim();
-      const taxpayerCityStateZip =
-        [data.clientAddressTown, data.clientAddressRegion].filter(Boolean).join(", ") +
-        (data.clientAddressZip ? " " + data.clientAddressZip : "");
-
-      const taxpayerNameAddress = join([taxpayerName, taxpayerAddr12, taxpayerCityStateZip]);
+      const taxpayerCityStateZip = [data.clientAddressTown, data.clientAddressRegion].filter(Boolean).join(", ") + (data.clientAddressZip ? " " + data.clientAddressZip : "");
+      const taxpayerNameAddress = [taxpayerName, taxpayerAddr12, taxpayerCityStateZip].map(s => (s || "").trim()).filter(Boolean).join("\n");
 
       const periodText = formatPeriod(data.yearFrom, data.yearTo);
 
       pill("Build", BUILD_ID);
-      pill("Matter", data.line3DescriptionOfMatter);
       pill("Period", periodText);
       pill("Representative", repName);
-      pill("Tax form", data.line3TaxFormNumber);
       pill("Taxpayer", taxpayerName);
 
       async function generate() {
@@ -322,13 +306,7 @@
         if (DEBUG.labels) drawAnchorLabels(page1, font);
 
         if (DEBUG.stamp) {
-          page1.drawText(`BUILD=${BUILD_ID} ox=${DEBUG.ox} oy=${DEBUG.oy}`, {
-            x: 12,
-            y: 40,
-            size: 10,
-            font,
-            color: rgb(1, 0, 0)
-          });
+          page1.drawText(`BUILD=${BUILD_ID} ox=${DEBUG.ox} oy=${DEBUG.oy}`, { x: 12, y: 40, size: 10, font, color: rgb(1, 0, 0) });
         }
 
         drawMultiline(
@@ -364,46 +342,25 @@
         page1.drawText((data.repTel || "").trim(),  { x: ax(POS.repTel.x),  y: ay(POS.repTel.y),  size: POS.repTel.size,  font, color: rgb(0, 0, 0) });
         page1.drawText((data.repFax || "").trim(),  { x: ax(POS.repFax.x),  y: ay(POS.repFax.y),  size: POS.repFax.size,  font, color: rgb(0, 0, 0) });
 
-        // ---- AUTHORIZED ACTS TABLE (3 rows) ----
-        // Wrap description + forms across rows 1-3,
-        // AND place the period/years into the right-most column across rows 1-3.
-        const descLines = wrapWords((data.line3DescriptionOfMatter || "").trim(), 42);
-        const formLines = wrapCsv((data.line3TaxFormNumber || "").trim(), 18);
-        const yearLines = wrapWords(periodText, 18);
+        // ===== ROW 1 ONLY, WITH NESTED LINE 2 INSIDE EACH CELL =====
+        const lineGap = 9;
 
-        const row1 = { desc: descLines[0] || "", form: formLines[0] || "", years: yearLines[0] || "" };
-        const row2 = { desc: descLines[1] || "", form: formLines[1] || "", years: yearLines[1] || "" };
-        const row3 = { desc: descLines[2] || "", form: formLines[2] || "", years: yearLines[2] || "" };
+        // Cell 1 (Description of matter): two lines at row1 y, then y-lineGap (still within cell 1)
+        const matterLines = splitMatter(data.line3DescriptionOfMatter);
+        if (matterLines[0]) page1.drawText(matterLines[0], { x: ax(POS.acts_desc_1.x), y: ay(POS.acts_desc_1.y), size: POS.acts_desc_1.size, font, color: rgb(0,0,0) });
+        if (matterLines[1]) page1.drawText(matterLines[1], { x: ax(POS.acts_desc_1.x), y: ay(POS.acts_desc_1.y) - lineGap, size: POS.acts_desc_1.size, font, color: rgb(0,0,0) });
 
-        const acts = [row1, row2, row3];
+        // Cell 2 (Tax form number): two lines at row1 y, then y-lineGap
+        const formLines = splitForms(data.line3TaxFormNumber);
+        if (formLines[0]) page1.drawText(formLines[0], { x: ax(POS.acts_form_1.x), y: ay(POS.acts_form_1.y), size: POS.acts_form_1.size, font, color: rgb(0,0,0) });
+        if (formLines[1]) page1.drawText(formLines[1], { x: ax(POS.acts_form_1.x), y: ay(POS.acts_form_1.y) - lineGap, size: POS.acts_form_1.size, font, color: rgb(0,0,0) });
 
-        acts.forEach((row, i) => {
-          const idx = i + 1;
+        // Cell 3 (Years/period): two lines at row1 y, then y-lineGap
+        const yearsLines = splitYears(periodText);
+        if (yearsLines[0]) page1.drawText(yearsLines[0], { x: ax(POS.acts_year_1.x), y: ay(POS.acts_year_1.y), size: POS.acts_year_1.size, font, color: rgb(0,0,0) });
+        if (yearsLines[1]) page1.drawText(yearsLines[1], { x: ax(POS.acts_year_1.x), y: ay(POS.acts_year_1.y) - lineGap, size: POS.acts_year_1.size, font, color: rgb(0,0,0) });
 
-          page1.drawText(row.desc, {
-            x: ax(POS[`acts_desc_${idx}`].x),
-            y: ay(POS[`acts_desc_${idx}`].y),
-            size: POS[`acts_desc_${idx}`].size,
-            font,
-            color: rgb(0, 0, 0)
-          });
-
-          page1.drawText(row.form, {
-            x: ax(POS[`acts_form_${idx}`].x),
-            y: ay(POS[`acts_form_${idx}`].y),
-            size: POS[`acts_form_${idx}`].size,
-            font,
-            color: rgb(0, 0, 0)
-          });
-
-          page1.drawText(row.years, {
-            x: ax(POS[`acts_year_${idx}`].x),
-            y: ay(POS[`acts_year_${idx}`].y),
-            size: POS[`acts_year_${idx}`].size,
-            font,
-            color: rgb(0, 0, 0)
-          });
-        });
+        // Leave rows 2/3 blank intentionally.
 
         if (data.line5aAuthorizeDisclosure) drawCheck(page1, ax(POS.line5aAuthorizeDisclosure_Check.x), ay(POS.line5aAuthorizeDisclosure_Check.y), font);
         if (data.line5aAccessRecords)      drawCheck(page1, ax(POS.line5aAccessISP_Check.x),          ay(POS.line5aAccessISP_Check.y),          font);
