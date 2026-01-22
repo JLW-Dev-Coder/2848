@@ -17,7 +17,7 @@
 <body>
 
   <h1>Form 2848 Generator</h1>
-  <p class="meta">Stamped onto a flattened IRS PDF (no form fields required).</p>
+  <p class="meta" id="buildMeta">Stamped onto a flattened IRS PDF (no form fields required).</p>
 
   <div class="row" id="summary"></div>
 
@@ -32,6 +32,9 @@
     (function () {
       const { PDFDocument, rgb, StandardFonts } = PDFLib;
 
+      // Bump this any time you deploy changes. It will show on-page and in the PDF.
+      const BUILD_ID = "2848-align-2026-01-22-b";
+
       const qs = new URLSearchParams(window.location.search);
       const get = (k) => (qs.get(k) || "").trim();
       const getBool = (k) => ["1", "true", "yes", "on"].includes((qs.get(k) || "").toLowerCase());
@@ -41,8 +44,16 @@
         gridStep: Number(get("gridStep") || 50),
         labels: get("labels") === "1",
         ox: Number(get("ox") || 0),
-        oy: Number(get("oy") || 0)
+        oy: Number(get("oy") || 0),
+        stamp: get("stamp") === "1"
       };
+
+      // Cache-busting for Cloudflare + browser caches.
+      // Use ?v=anything on the page URL; it will also bust the PDF fetch.
+      const V = get("v") || String(Date.now());
+
+      document.getElementById("buildMeta").textContent =
+        `Stamped onto a flattened IRS PDF (no form fields required). BUILD=${BUILD_ID}`;
 
       const data = {
         TaxpayerSSNITIN: get("TaxpayerSSNITIN") || "{{TaxpayerSSNITIN}}",
@@ -78,6 +89,8 @@
         yearTo: get("myOrganizationIRSCurrentTaxYear") || "{{myOrganizationIRSCurrentTaxYear}}"
       };
 
+      // Coordinates are in PDF points; origin is bottom-left.
+      // Taxpayer name + address share ONE box -> one multiline block anchor.
       const POS = {
         acts_desc_1: { x: 40,  y: 270, size: 9 },
         acts_desc_2: { x: 40,  y: 245, size: 9 },
@@ -103,7 +116,7 @@
         repTel:  { x: 405, y: 510, size: 9 },
         repFax:  { x: 405, y: 495, size: 9 },
 
-        taxpayerNameAddressBlock: { x: 50, y: 0, lineGap: 11, size: 9 },
+        taxpayerNameAddressBlock: { x: 50, y: 650, lineGap: 11, size: 9 },
         taxpayerTIN: { x: 400, y: 650, size: 9 }
       };
 
@@ -137,6 +150,7 @@
         [data.clientAddressTown, data.clientAddressRegion].filter(Boolean).join(", ") + (data.clientAddressZip ? " " + data.clientAddressZip : "")
       ]);
 
+      pill("Build", BUILD_ID);
       pill("Matter", data.line3DescriptionOfMatter);
       pill("Representative", repName);
       pill("Tax form", data.line3TaxFormNumber);
@@ -190,7 +204,13 @@
           page.drawText(String(y), { x: 2, y: Math.min(y + 2, height - 10), size: 7, font, color: rgb(0.35, 0.35, 0.35) });
         }
 
-        page.drawText(`GRID step=${step}  ox=${DEBUG.ox}  oy=${DEBUG.oy}`, { x: 12, y: height - 26, size: 9, font, color: rgb(0.2, 0.2, 0.2) });
+        page.drawText(`GRID step=${step} ox=${DEBUG.ox} oy=${DEBUG.oy} BUILD=${BUILD_ID}`, {
+          x: 12,
+          y: height - 26,
+          size: 9,
+          font,
+          color: rgb(0.2, 0.2, 0.2)
+        });
       }
 
       function drawAnchorLabels(page, font) {
@@ -219,7 +239,9 @@
       async function generate() {
         status.textContent = "Generating PDF…";
 
-        const res = await fetch("./f2848.pdf");
+        // Cache-bust the PDF fetch too, and ask browser/CDN not to cache.
+        const pdfUrl = `./f2848.pdf?v=${encodeURIComponent(V)}`;
+        const res = await fetch(pdfUrl, { cache: "no-store" });
         if (!res.ok) throw new Error(`PDF fetch failed: ${res.status} ${res.statusText}`);
         const pdfBytes = await res.arrayBuffer();
 
@@ -227,11 +249,22 @@
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const page1 = pdfDoc.getPages()[0];
 
+        // Normalize coordinate space (prevents CropBox shifts)
         const { width, height } = page1.getSize();
         page1.setCropBox(0, 0, width, height);
 
         if (DEBUG.grid) drawGrid(page1, font, width, height, DEBUG.gridStep);
         if (DEBUG.labels) drawAnchorLabels(page1, font);
+
+        if (DEBUG.stamp) {
+          page1.drawText(`BUILD=${BUILD_ID} taxpayerY=${POS.taxpayerNameAddressBlock.y} ox=${DEBUG.ox} oy=${DEBUG.oy}`, {
+            x: 12,
+            y: 40,
+            size: 10,
+            font,
+            color: rgb(1, 0, 0)
+          });
+        }
 
         drawMultiline(
           page1,
@@ -274,6 +307,7 @@
 
         acts.forEach((row, i) => {
           const idx = i + 1;
+
           page1.drawText(clamp(row.desc, 75), {
             x: ax(POS[`acts_desc_${idx}`].x),
             y: ay(POS[`acts_desc_${idx}`].y),
