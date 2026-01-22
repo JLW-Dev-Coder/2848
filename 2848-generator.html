@@ -70,32 +70,32 @@
       };
 
       const POS = {
-        acts_desc_1: { x: 40,  y: 273, size: 9 },
-        acts_desc_2: { x: 40,  y: 243, size: 9 },
-        acts_desc_3: { x: 40,  y: 213, size: 9 },
+        acts_desc_1: { x: 40,  y: 267, size: 9 },
+        acts_desc_2: { x: 40,  y: 237, size: 9 },
+        acts_desc_3: { x: 40,  y: 207, size: 9 },
 
-        acts_form_1: { x: 330, y: 273, size: 9 },
-        acts_form_2: { x: 330, y: 243, size: 9 },
-        acts_form_3: { x: 330, y: 213, size: 9 },
+        acts_form_1: { x: 330, y: 267, size: 9 },
+        acts_form_2: { x: 330, y: 237, size: 9 },
+        acts_form_3: { x: 330, y: 207, size: 9 },
 
-        acts_year_1: { x: 450, y: 273, size: 9 },
-        acts_year_2: { x: 450, y: 243, size: 9 },
-        acts_year_3: { x: 450, y: 213, size: 9 },
+        acts_year_1: { x: 450, y: 267, size: 9 },
+        acts_year_2: { x: 450, y: 237, size: 9 },
+        acts_year_3: { x: 450, y: 207, size: 9 },
 
         line5aAuthorizeDisclosure_Check: { x: 55,  y: 135 },
         line5aAccessISP_Check:          { x: 210, y: 135 },
         line5aSubAddRep_Check:          { x: 410, y: 135 },
         line5aSignReturn_Check:         { x: 560, y: 135 },
 
-        repBlock: { x: 70, y: 540, lineGap: 11, size: 9 },
+        repBlock: { x: 70, y: 520, lineGap: 11, size: 9 },
 
-        repCAF:  { x: 405, y: 585, size: 9 },
-        repPTIN: { x: 405, y: 570, size: 9 },
-        repTel:  { x: 405, y: 555, size: 9 },
-        repFax:  { x: 405, y: 540, size: 9 },
+        repCAF:  { x: 405, y: 570, size: 9 },
+        repPTIN: { x: 405, y: 555, size: 9 },
+        repTel:  { x: 405, y: 540, size: 9 },
+        repFax:  { x: 405, y: 525, size: 9 },
 
-        taxpayerAddress: { x: 70, y: 645, lineGap: 11, size: 9 },
-        taxpayerName: { x: 70, y: 685, size: 10 },
+        taxpayerAddress: { x: 70, y: 630, lineGap: 11, size: 9 },
+        taxpayerName: { x: 70, y: 672, size: 10 },
         taxpayerTIN: { x: 400, y: 660, size: 9 }
       };
 
@@ -143,7 +143,7 @@
       }
 
       function drawCheck(page, x, y, font) {
-        page.drawText("X", { x, y, size: 8, font, color: rgb(0,0,0) });
+        page.drawText("X", { x: x + 1, y: y - 3, size: 8, font, color: rgb(0,0,0) });
       }
 
       async function generate() {
