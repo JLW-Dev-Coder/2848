@@ -110,8 +110,15 @@
         `<ol style="margin:0; padding-left:18px;">
           <li>Complete all required fields above, then click <b>Save</b>.</li>
           <li>Click <b>Generate PDF</b> to download <b>Page 1</b> of Form 2848.</li>
-          <li>Open <b>Page 2</b> and e-sign <b>Part II</b>. Sign directly below the client’s signature line using the same representative details entered above.</li>
-          <li>Save the completed form and upload it using this filename format: <b>${fileNameTemplate}</b>.</li>
+          <li>
+              <b>Only if a wet-signed Form 2848 is required:</b><br>
+              Download <b>Page 2</b> and sign <b>Part II</b> directly below the taxpayer’s wet signature using the same representative details entered above.
+          </li>
+          <li>
+              When a wet signature is required, upload the completed form using the
+              <b>Wet-Signed 2848 Upload</b> field (this replaces the eSigned 2848 upload).
+          </li>
+          <li>Save the completed form using this filename format: <b>${fileNameTemplate}</b>.</li>
         </ol>`;
 
       const IRS_TEXT_SIZE = 8.5;
