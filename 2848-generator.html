@@ -15,196 +15,196 @@
   </style>
 </head>
 <body>
-  
+
 <h1>Form 2848 Generator</h1>
 
 <p class="meta" id="buildMeta">
-This tool generates a flattened IRS Form 2848 PDF after all required fields are completed and submitted.
+  This tool generates a flattened IRS Form 2848 PDF after all required fields are completed and submitted.
 </p>
 
 <div class="row" id="summary"></div>
 
 <div class="row">
-    <ol>
-        <li>Complete all required fields on the Form 2848.</li>
-        <li>Submit the form to validate entries.</li>
-        <li>Select <strong>Generate PDF</strong> to create the flattened document.</li>
-        <li>Save the generated PDF together with page 2.</li>
-    </ol>
+  <ol>
+    <li>Complete all required fields on the Form 2848.</li>
+    <li>Submit the form to validate entries.</li>
+    <li>Select <strong>Generate PDF</strong> to create the flattened document.</li>
+    <li>Save the generated PDF together with page 2.</li>
+  </ol>
 
-    <p>
-        Use the following file naming format when saving:
-        <br>
-        <code>Form_2848_ClientLastName_ClientFirstName_DateSigned_YYYY_MMDD</code>
-    </p>
+  <p>
+    Use the following file naming format when saving:
+    <br>
+    <code>Form_2848_ClientLastName_ClientFirstName_DateSigned_YYYY_MMDD</code>
+  </p>
 </div>
 
 <div class="row">
-    <button class="btn" id="generate" type="button">Generate PDF</button>
+  <button class="btn" id="generate" type="button">Generate PDF</button>
 </div>
 
 <div id="status">Ready.</div>
 
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script>
+  (function () {
+    const { PDFDocument, rgb, StandardFonts } = PDFLib;
 
-  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-  <script>
-    (function () {
-      const { PDFDocument, rgb, StandardFonts } = PDFLib;
+    const BUILD_ID = "2848-align-2026-01-22-h";
+    const BUILD_TS = new Date().toLocaleString();
 
-      const BUILD_ID = "2848-align-2026-01-22-h";
-      const BUILD_TS = new Date().toLocaleString();
+    const qs = new URLSearchParams(window.location.search);
 
-      const qs = new URLSearchParams(window.location.search);
+    function clean(v) {
+      const s = String(v == null ? "" : v).trim();
+      if (!s) return "";
+      if (s.startsWith("{{") && s.endsWith("}}")) return "";
+      return s;
+    }
 
-      function clean(v) {
-        const s = String(v == null ? "" : v).trim();
-        if (!s) return "";
-        if (s.startsWith("{{") && s.endsWith("}}")) return "";
-        return s;
-      }
+    function get(k) { return clean(qs.get(k)); }
+    function getBool(k) { return ["1", "true", "yes", "on"].includes((qs.get(k) || "").toLowerCase()); }
 
-      function get(k) { return clean(qs.get(k)); }
-      function getBool(k) { return ["1", "true", "yes", "on"].includes((qs.get(k) || "").toLowerCase()); }
+    const DEBUG = {
+      grid: get("grid") === "1",
+      gridStep: Number(get("gridStep") || 50),
+      labels: get("labels") === "1",
+      ox: Number(get("ox") || 0),
+      oy: Number(get("oy") || 0),
+      stamp: get("stamp") === "1"
+    };
 
-      const DEBUG = {
-        grid: get("grid") === "1",
-        gridStep: Number(get("gridStep") || 50),
-        labels: get("labels") === "1",
-        ox: Number(get("ox") || 0),
-        oy: Number(get("oy") || 0),
-        stamp: get("stamp") === "1"
-      };
+    const V = get("v") || String(Date.now());
 
-      const V = get("v") || String(Date.now());
+    const buildMetaEl = document.getElementById("buildMeta");
+    if (buildMetaEl) {
+      buildMetaEl.textContent = `${buildMetaEl.textContent.trim()} (${BUILD_TS})`;
+    }
 
-      document.getElementById("runStamp").textContent = `RUNNING ${BUILD_TS}`;
-      document.getElementById("buildMeta").textContent =
-        `Stamped onto a flattened IRS PDF (no form fields required). ${BUILD_TS}`;
+    const data = {
+      TaxpayerSSNITIN: get("TaxpayerSSNITIN"),
 
-      const data = {
-        TaxpayerSSNITIN: get("TaxpayerSSNITIN"),
+      clientAddressLine1: get("clientAddressLine1"),
+      clientAddressLine2: get("clientAddressLine2"),
+      clientAddressRegion: get("clientAddressRegion"),
+      clientAddressTown: get("clientAddressTown"),
+      clientAddressZip: get("clientAddressZip"),
+      clientFirstName: get("clientFirstName"),
+      clientLastName: get("clientLastName"),
 
-        clientAddressLine1: get("clientAddressLine1"),
-        clientAddressLine2: get("clientAddressLine2"),
-        clientAddressRegion: get("clientAddressRegion"),
-        clientAddressTown: get("clientAddressTown"),
-        clientAddressZip: get("clientAddressZip"),
-        clientFirstName: get("clientFirstName"),
-        clientLastName: get("clientLastName"),
+      line3DescriptionOfMatter: get("line3DescriptionOfMatter") ||
+        "Income, Employment, Payroll, Excise, Estate, Gift, Civil Penalty, Sec. 4980H Shared Responsibility Payment",
 
-        line3DescriptionOfMatter: get("line3DescriptionOfMatter") ||
-          "Income, Employment, Payroll, Excise, Estate, Gift, Civil Penalty, Sec. 4980H Shared Responsibility Payment",
+      line3TaxFormNumber: get("line3TaxFormNumber") || "940, 941, 720, 1040, 1120, 1120S",
 
-        line3TaxFormNumber: get("line3TaxFormNumber") || "940, 941, 720, 1040, 1120, 1120S",
+      line5aAccessRecords: getBool("line5aAccessRecords") || true,
+      line5aAuthorizeDisclosure: getBool("line5aAuthorizeDisclosure") || false,
+      line5aSignReturn: getBool("line5aSignReturn") || false,
+      line5aSubstituteOrAddRep: getBool("line5aSubstituteOrAddRep") || true,
 
-        line5aAccessRecords: getBool("line5aAccessRecords") || true,
-        line5aAuthorizeDisclosure: getBool("line5aAuthorizeDisclosure") || false,
-        line5aSignReturn: getBool("line5aSignReturn") || false,
-        line5aSubstituteOrAddRep: getBool("line5aSubstituteOrAddRep") || true,
+      repAddr1: get("2848Rep1AddressLine1") || get("2848_Rep_1_Address_Line_1"),
+      repAddr2: get("2848Rep1AddressLine2") || get("2848_Rep_1_Address_Line_2"),
+      repCAF:   get("2848Rep1CAF")          || get("2848_Rep_1_CAF"),
+      repCity:  get("2848Rep1AddressCity")  || get("2848_Rep_1_Address_City"),
+      repFax:   get("2848Rep1Fax")          || get("2848_Rep_1_Fax"),
+      repFirst: get("2848Rep1FirstName")    || get("2848_Rep_1_First_Name"),
+      repLast:  get("2848Rep1LastName")     || get("2848_Rep_1_Last_Name"),
+      repPTIN:  get("2848Rep1PTIN")         || get("2848_Rep_1_PTIN"),
+      repState: get("2848Rep1AddressState") || get("2848_Rep_1_Address_State"),
+      repTel:   get("2848Rep1Telephone")    || get("2848_Rep_1_Telephone"),
+      repZip:   get("2848Rep1AddressZip")   || get("2848_Rep_1_Address_Zip"),
 
-        repAddr1: get("2848Rep1AddressLine1") || get("2848_Rep_1_Address_Line_1"),
-        repAddr2: get("2848Rep1AddressLine2") || get("2848_Rep_1_Address_Line_2"),
-        repCAF:   get("2848Rep1CAF")          || get("2848_Rep_1_CAF"),
-        repCity:  get("2848Rep1AddressCity")  || get("2848_Rep_1_Address_City"),
-        repFax:   get("2848Rep1Fax")          || get("2848_Rep_1_Fax"),
-        repFirst: get("2848Rep1FirstName")    || get("2848_Rep_1_First_Name"),
-        repLast:  get("2848Rep1LastName")     || get("2848_Rep_1_Last_Name"),
-        repPTIN:  get("2848Rep1PTIN")         || get("2848_Rep_1_PTIN"),
-        repState: get("2848Rep1AddressState") || get("2848_Rep_1_Address_State"),
-        repTel:   get("2848Rep1Telephone")    || get("2848_Rep_1_Telephone"),
-        repZip:   get("2848Rep1AddressZip")   || get("2848_Rep_1_Address_Zip"),
+      yearFrom: get("myOrganizationIRSCurrentTaxYear10ComplianceYears"),
+      yearTo: get("myOrganizationIRSCurrentTaxYear")
+    };
 
-        yearFrom: get("myOrganizationIRSCurrentTaxYear10ComplianceYears"),
-        yearTo: get("myOrganizationIRSCurrentTaxYear")
-      };
+    const IRS_TEXT_SIZE = 8.5;
 
-      const IRS_TEXT_SIZE = 8.5;
+    const POS = {
+      acts_desc_1: { x: 38,  y: 240, size: IRS_TEXT_SIZE },
+      acts_form_1: { x: 330, y: 240, size: IRS_TEXT_SIZE },
+      acts_year_1: { x: 474, y: 240, size: IRS_TEXT_SIZE },
 
-      const POS = {
-        acts_desc_1: { x: 38,  y: 240, size: IRS_TEXT_SIZE },
-        acts_form_1: { x: 330, y: 240, size: IRS_TEXT_SIZE },
-        acts_year_1: { x: 474, y: 240, size: IRS_TEXT_SIZE },
+      acts_desc_2: { x: 40,  y: 205, size: IRS_TEXT_SIZE },
+      acts_form_2: { x: 330, y: 205, size: IRS_TEXT_SIZE },
+      acts_year_2: { x: 474, y: 205, size: IRS_TEXT_SIZE },
 
-        acts_desc_2: { x: 40,  y: 205, size: IRS_TEXT_SIZE },
-        acts_form_2: { x: 330, y: 205, size: IRS_TEXT_SIZE },
-        acts_year_2: { x: 474, y: 205, size: IRS_TEXT_SIZE },
+      acts_desc_3: { x: 40,  y: 180, size: IRS_TEXT_SIZE },
+      acts_form_3: { x: 330, y: 180, size: IRS_TEXT_SIZE },
+      acts_year_3: { x: 474, y: 180, size: IRS_TEXT_SIZE },
 
-        acts_desc_3: { x: 40,  y: 180, size: IRS_TEXT_SIZE },
-        acts_form_3: { x: 330, y: 180, size: IRS_TEXT_SIZE },
-        acts_year_3: { x: 474, y: 180, size: IRS_TEXT_SIZE },
+      line5aAccessISP_Check:           { x: 230, y: 137 },
+      line5aAuthorizeDisclosure_Check: { x: 55,  y: 130 },
+      line5aSignReturn_Check:          { x: 560, y: 130 },
+      line5aSubAddRep_Check:           { x: 230, y: 126 },
 
-        line5aAccessISP_Check:           { x: 230, y: 137 },
-        line5aAuthorizeDisclosure_Check: { x: 55,  y: 130 },
-        line5aSignReturn_Check:          { x: 560, y: 130 },
-        line5aSubAddRep_Check:           { x: 230, y: 126 },
+      repBlock: { x: 40, y: 565, lineGap: 11, size: IRS_TEXT_SIZE },
 
-        repBlock: { x: 40, y: 565, lineGap: 11, size: IRS_TEXT_SIZE },
+      repCAF:  { x: 395, y: 578, size: IRS_TEXT_SIZE },
+      repPTIN: { x: 396, y: 566, size: IRS_TEXT_SIZE },
+      repTel:  { x: 413, y: 553, size: IRS_TEXT_SIZE },
+      repFax:  { x: 405, y: 541, size: IRS_TEXT_SIZE },
 
-        repCAF:  { x: 395, y: 578, size: IRS_TEXT_SIZE },
-        repPTIN: { x: 396, y: 566, size: IRS_TEXT_SIZE },
-        repTel:  { x: 413, y: 553, size: IRS_TEXT_SIZE },
-        repFax:  { x: 405, y: 541, size: IRS_TEXT_SIZE },
+      taxpayerNameAddressBlock: { x: 40, y: 640, lineGap: 9, size: IRS_TEXT_SIZE },
+      taxpayerTIN: { x: 348, y: 640, size: IRS_TEXT_SIZE }
+    };
 
-        taxpayerNameAddressBlock: { x: 40, y: 640, lineGap: 9, size: IRS_TEXT_SIZE },
-        taxpayerTIN: { x: 348, y: 640, size: IRS_TEXT_SIZE }
-      };
+    const status = document.getElementById("status");
+    const summary = document.getElementById("summary");
 
-      const status = document.getElementById("status");
-      const summary = document.getElementById("summary");
+    const pill = (label, value) => {
+      const d = document.createElement("div");
+      d.className = "pill";
+      d.textContent = value ? `${label}: ${value}` : `${label}: (blank)`;
+      summary.appendChild(d);
+    };
 
-      const pill = (label, value) => {
-        const d = document.createElement("div");
-        d.className = "pill";
-        d.textContent = value ? `${label}: ${value}` : `${label}: (blank)`;
-        summary.appendChild(d);
-      };
+    pill("Generated", BUILD_TS);
 
-      pill("Generated", BUILD_TS);
+    async function generate() {
+      status.textContent = "Generating PDF…";
 
-      async function generate() {
-        status.textContent = "Generating PDF…";
+      const pdfUrl = `./f2848.pdf?v=${encodeURIComponent(V)}`;
+      const res = await fetch(pdfUrl, { cache: "no-store" });
+      if (!res.ok) throw new Error(`PDF fetch failed: ${res.status} ${res.statusText}`);
+      const pdfBytes = await res.arrayBuffer();
 
-        const pdfUrl = `./f2848.pdf?v=${encodeURIComponent(V)}`;
-        const res = await fetch(pdfUrl, { cache: "no-store" });
-        if (!res.ok) throw new Error(`PDF fetch failed: ${res.status} ${res.statusText}`);
-        const pdfBytes = await res.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(pdfBytes);
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const page1 = pdfDoc.getPages()[0];
 
-        const pdfDoc = await PDFDocument.load(pdfBytes);
-        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-        const page1 = pdfDoc.getPages()[0];
-
-        if (DEBUG.stamp) {
-          page1.drawText(`${BUILD_TS} ox=${DEBUG.ox} oy=${DEBUG.oy}`, {
-            x: 12,
-            y: 40,
-            size: 10,
-            font,
-            color: rgb(1, 0, 0)
-          });
-        }
-
-        const out = await pdfDoc.save();
-        const blob = new Blob([out], { type: "application/pdf" });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "Form-2848-filled.pdf";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-
-        URL.revokeObjectURL(url);
-        status.textContent = "PDF generated.";
-      }
-
-      document.getElementById("generate").addEventListener("click", () => {
-        generate().catch((e) => {
-          console.error(e);
-          status.textContent = `Error: ${e && e.message ? e.message : String(e)}`;
+      if (DEBUG.stamp) {
+        page1.drawText(`${BUILD_TS} ox=${DEBUG.ox} oy=${DEBUG.oy}`, {
+          x: 12,
+          y: 40,
+          size: 10,
+          font,
+          color: rgb(1, 0, 0)
         });
+      }
+
+      const out = await pdfDoc.save();
+      const blob = new Blob([out], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Form-2848-filled.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      URL.revokeObjectURL(url);
+      status.textContent = "PDF generated.";
+    }
+
+    document.getElementById("generate").addEventListener("click", () => {
+      generate().catch((e) => {
+        console.error(e);
+        status.textContent = `Error: ${e && e.message ? e.message : String(e)}`;
       });
-    })();
-  </script>
+    });
+  })();
+</script>
 </body>
 </html>
