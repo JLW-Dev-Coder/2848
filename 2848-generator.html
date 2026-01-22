@@ -47,80 +47,6 @@
       function get(k) { return clean(qs.get(k)); }
       function getBool(k) { return ["1", "true", "yes", "on"].includes((qs.get(k) || "").toLowerCase()); }
 
-      function formatTin(v) {
-        const digits = String(v || "").replace(/\D/g, "");
-        if (digits.length === 9) return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
-        return String(v || "").trim();
-      }
-
-      // FIX: Wrap long text across the 3 rows instead of truncating with …
-      function wrapWords(text, maxCharsPerLine, maxLines) {
-        const s = String(text || "").trim().replace(/\s+/g, " ");
-        if (!s) return Array(maxLines).fill("");
-
-        const words = s.split(" ");
-        const lines = [];
-        let line = "";
-
-        for (const w of words) {
-          const candidate = line ? `${line} ${w}` : w;
-          if (candidate.length <= maxCharsPerLine) {
-            line = candidate;
-            continue;
-          }
-
-          if (line) lines.push(line);
-          line = w;
-
-          if (lines.length >= maxLines) break;
-        }
-
-        if (lines.length < maxLines && line) lines.push(line);
-
-        while (lines.length < maxLines) lines.push("");
-
-        // If we exceeded maxLines, we keep the first maxLines and hard-trim last line (no ellipsis).
-        if (lines.length > maxLines) lines.length = maxLines;
-
-        // Hard-trim each line to maxCharsPerLine
-        for (let i = 0; i < lines.length; i++) {
-          if (lines[i].length > maxCharsPerLine) lines[i] = lines[i].slice(0, maxCharsPerLine);
-        }
-
-        return lines;
-      }
-
-      function wrapCsv(text, maxCharsPerLine, maxLines) {
-        const s = String(text || "").trim();
-        if (!s) return Array(maxLines).fill("");
-
-        const parts = s.split(",").map(p => p.trim()).filter(Boolean);
-        const lines = [];
-        let line = "";
-
-        for (const p of parts) {
-          const piece = line ? `${line}, ${p}` : p;
-          if (piece.length <= maxCharsPerLine) {
-            line = piece;
-            continue;
-          }
-
-          if (line) lines.push(line);
-          line = p;
-
-          if (lines.length >= maxLines) break;
-        }
-
-        if (lines.length < maxLines && line) lines.push(line);
-        while (lines.length < maxLines) lines.push("");
-
-        for (let i = 0; i < lines.length; i++) {
-          if (lines[i].length > maxCharsPerLine) lines[i] = lines[i].slice(0, maxCharsPerLine);
-        }
-
-        return lines;
-      }
-
       const DEBUG = {
         grid: get("grid") === "1",
         gridStep: Number(get("gridStep") || 50),
@@ -215,38 +141,6 @@
 
       const join = (arr) => arr.map(v => (v || "").trim()).filter(Boolean).join("\n");
 
-      const taxpayerName = [data.clientFirstName, data.clientLastName].filter(Boolean).join(" ").trim();
-      const repName = [data.repFirst, data.repLast].filter(Boolean).join(" ").trim();
-      const yearRange = (data.yearFrom && data.yearTo) ? `${data.yearFrom} through ${data.yearTo}` : (data.yearFrom || data.yearTo || "");
-
-      const repAddr12 = [data.repAddr1, data.repAddr2].filter(Boolean).join(" ").trim();
-      const repCityStateZip =
-        [data.repCity, data.repState].filter(Boolean).join(", ") +
-        (data.repZip ? " " + data.repZip : "");
-
-      const repBlockText = join([
-        repName,
-        repAddr12,
-        repCityStateZip
-      ]);
-
-      const taxpayerAddr12 = [data.clientAddressLine1, data.clientAddressLine2].filter(Boolean).join(" ").trim();
-      const taxpayerCityStateZip =
-        [data.clientAddressTown, data.clientAddressRegion].filter(Boolean).join(", ") +
-        (data.clientAddressZip ? " " + data.clientAddressZip : "");
-
-      const taxpayerNameAddress = join([
-        taxpayerName,
-        taxpayerAddr12,
-        taxpayerCityStateZip
-      ]);
-
-      pill("Build", BUILD_ID);
-      pill("Matter", data.line3DescriptionOfMatter);
-      pill("Representative", repName);
-      pill("Tax form", data.line3TaxFormNumber);
-      pill("Taxpayer", taxpayerName);
-
       function ax(x) { return x + DEBUG.ox; }
       function ay(y) { return y + DEBUG.oy; }
 
@@ -327,6 +221,88 @@
         });
       }
 
+      // Wrap helpers
+      function wrapWords(text, maxChars) {
+        const words = String(text || "").trim().split(/\s+/).filter(Boolean);
+        const lines = [];
+        let line = "";
+        for (const w of words) {
+          const next = line ? (line + " " + w) : w;
+          if (next.length <= maxChars) {
+            line = next;
+          } else {
+            if (line) lines.push(line);
+            line = w;
+          }
+        }
+        if (line) lines.push(line);
+        return lines;
+      }
+
+      function wrapCsv(text, maxChars) {
+        const parts = String(text || "")
+          .split(",")
+          .map(s => s.trim())
+          .filter(Boolean);
+
+        const lines = [];
+        let line = "";
+        for (const p of parts) {
+          const token = p; // no trailing comma in token
+          const next = line ? (line + ", " + token) : token;
+          if (next.length <= maxChars) {
+            line = next;
+          } else {
+            if (line) lines.push(line);
+            line = token;
+          }
+        }
+        if (line) lines.push(line);
+        return lines;
+      }
+
+      function formatPeriod(yearFrom, yearTo) {
+        const a = String(yearFrom || "").trim();
+        const b = String(yearTo || "").trim();
+        if (a && b) return `${a} through ${b}`;
+        return a || b || "";
+      }
+
+      // SSN formatting: XXXXXXXX -> XXX-XX-XXXX (also handles already-dashed)
+      function formatTin(v) {
+        const raw = String(v || "").trim();
+        if (!raw) return "";
+        const digits = raw.replace(/\D/g, "");
+        if (digits.length === 9) return `${digits.slice(0,3)}-${digits.slice(3,5)}-${digits.slice(5)}`;
+        return raw; // leave ITIN/other formats as-is
+      }
+
+      const taxpayerName = [data.clientFirstName, data.clientLastName].filter(Boolean).join(" ").trim();
+      const repName = [data.repFirst, data.repLast].filter(Boolean).join(" ").trim();
+
+      const repAddr12 = [data.repAddr1, data.repAddr2].filter(Boolean).join(" ").trim();
+      const repCityStateZip =
+        [data.repCity, data.repState].filter(Boolean).join(", ") +
+        (data.repZip ? " " + data.repZip : "");
+
+      const repBlockText = join([repName, repAddr12, repCityStateZip]);
+
+      const taxpayerAddr12 = [data.clientAddressLine1, data.clientAddressLine2].filter(Boolean).join(" ").trim();
+      const taxpayerCityStateZip =
+        [data.clientAddressTown, data.clientAddressRegion].filter(Boolean).join(", ") +
+        (data.clientAddressZip ? " " + data.clientAddressZip : "");
+
+      const taxpayerNameAddress = join([taxpayerName, taxpayerAddr12, taxpayerCityStateZip]);
+
+      const periodText = formatPeriod(data.yearFrom, data.yearTo);
+
+      pill("Build", BUILD_ID);
+      pill("Matter", data.line3DescriptionOfMatter);
+      pill("Period", periodText);
+      pill("Representative", repName);
+      pill("Tax form", data.line3TaxFormNumber);
+      pill("Taxpayer", taxpayerName);
+
       async function generate() {
         status.textContent = "Generating PDF…";
 
@@ -388,44 +364,46 @@
         page1.drawText((data.repTel || "").trim(),  { x: ax(POS.repTel.x),  y: ay(POS.repTel.y),  size: POS.repTel.size,  font, color: rgb(0, 0, 0) });
         page1.drawText((data.repFax || "").trim(),  { x: ax(POS.repFax.x),  y: ay(POS.repFax.y),  size: POS.repFax.size,  font, color: rgb(0, 0, 0) });
 
-        // FIX: Wrap long description + form list into rows 1-3
-        const descLines = wrapWords((data.line3DescriptionOfMatter || "").trim(), 58, 3);
-        const formLines = wrapCsv((data.line3TaxFormNumber || "").trim(), 18, 3);
-        const yearLines = wrapWords(yearRange, 22, 3);
+        // ---- AUTHORIZED ACTS TABLE (3 rows) ----
+        // Wrap description + forms across rows 1-3,
+        // AND place the period/years into the right-most column across rows 1-3.
+        const descLines = wrapWords((data.line3DescriptionOfMatter || "").trim(), 42);
+        const formLines = wrapCsv((data.line3TaxFormNumber || "").trim(), 18);
+        const yearLines = wrapWords(periodText, 18);
 
-        for (let i = 0; i < 3; i++) {
+        const row1 = { desc: descLines[0] || "", form: formLines[0] || "", years: yearLines[0] || "" };
+        const row2 = { desc: descLines[1] || "", form: formLines[1] || "", years: yearLines[1] || "" };
+        const row3 = { desc: descLines[2] || "", form: formLines[2] || "", years: yearLines[2] || "" };
+
+        const acts = [row1, row2, row3];
+
+        acts.forEach((row, i) => {
           const idx = i + 1;
 
-          if (descLines[i]) {
-            page1.drawText(descLines[i], {
-              x: ax(POS[`acts_desc_${idx}`].x),
-              y: ay(POS[`acts_desc_${idx}`].y),
-              size: POS[`acts_desc_${idx}`].size,
-              font,
-              color: rgb(0, 0, 0)
-            });
-          }
+          page1.drawText(row.desc, {
+            x: ax(POS[`acts_desc_${idx}`].x),
+            y: ay(POS[`acts_desc_${idx}`].y),
+            size: POS[`acts_desc_${idx}`].size,
+            font,
+            color: rgb(0, 0, 0)
+          });
 
-          if (formLines[i]) {
-            page1.drawText(formLines[i], {
-              x: ax(POS[`acts_form_${idx}`].x),
-              y: ay(POS[`acts_form_${idx}`].y),
-              size: POS[`acts_form_${idx}`].size,
-              font,
-              color: rgb(0, 0, 0)
-            });
-          }
+          page1.drawText(row.form, {
+            x: ax(POS[`acts_form_${idx}`].x),
+            y: ay(POS[`acts_form_${idx}`].y),
+            size: POS[`acts_form_${idx}`].size,
+            font,
+            color: rgb(0, 0, 0)
+          });
 
-          if (yearLines[i]) {
-            page1.drawText(yearLines[i], {
-              x: ax(POS[`acts_year_${idx}`].x),
-              y: ay(POS[`acts_year_${idx}`].y),
-              size: POS[`acts_year_${idx}`].size,
-              font,
-              color: rgb(0, 0, 0)
-            });
-          }
-        }
+          page1.drawText(row.years, {
+            x: ax(POS[`acts_year_${idx}`].x),
+            y: ay(POS[`acts_year_${idx}`].y),
+            size: POS[`acts_year_${idx}`].size,
+            font,
+            color: rgb(0, 0, 0)
+          });
+        });
 
         if (data.line5aAuthorizeDisclosure) drawCheck(page1, ax(POS.line5aAuthorizeDisclosure_Check.x), ay(POS.line5aAuthorizeDisclosure_Check.y), font);
         if (data.line5aAccessRecords)      drawCheck(page1, ax(POS.line5aAccessISP_Check.x),          ay(POS.line5aAccessISP_Check.y),          font);
