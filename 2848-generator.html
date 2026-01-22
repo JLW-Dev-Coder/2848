@@ -33,14 +33,13 @@
     (function () {
       const { PDFDocument, rgb, StandardFonts } = PDFLib;
 
-      const BUILD_ID = "2848-align-2026-01-22-e";
+      const BUILD_ID = "2848-align-2026-01-22-f";
 
       const qs = new URLSearchParams(window.location.search);
 
       function clean(v) {
         const s = String(v == null ? "" : v).trim();
         if (!s) return "";
-        // Strip unresolved SuiteDash-style placeholders like {{fieldName}}
         if (s.startsWith("{{") && s.endsWith("}}")) return "";
         return s;
       }
@@ -48,11 +47,78 @@
       function get(k) { return clean(qs.get(k)); }
       function getBool(k) { return ["1", "true", "yes", "on"].includes((qs.get(k) || "").toLowerCase()); }
 
-      // FIX: Format taxpayer TIN as XXX-XX-XXXX when it is 9 digits
       function formatTin(v) {
         const digits = String(v || "").replace(/\D/g, "");
         if (digits.length === 9) return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
         return String(v || "").trim();
+      }
+
+      // FIX: Wrap long text across the 3 rows instead of truncating with …
+      function wrapWords(text, maxCharsPerLine, maxLines) {
+        const s = String(text || "").trim().replace(/\s+/g, " ");
+        if (!s) return Array(maxLines).fill("");
+
+        const words = s.split(" ");
+        const lines = [];
+        let line = "";
+
+        for (const w of words) {
+          const candidate = line ? `${line} ${w}` : w;
+          if (candidate.length <= maxCharsPerLine) {
+            line = candidate;
+            continue;
+          }
+
+          if (line) lines.push(line);
+          line = w;
+
+          if (lines.length >= maxLines) break;
+        }
+
+        if (lines.length < maxLines && line) lines.push(line);
+
+        while (lines.length < maxLines) lines.push("");
+
+        // If we exceeded maxLines, we keep the first maxLines and hard-trim last line (no ellipsis).
+        if (lines.length > maxLines) lines.length = maxLines;
+
+        // Hard-trim each line to maxCharsPerLine
+        for (let i = 0; i < lines.length; i++) {
+          if (lines[i].length > maxCharsPerLine) lines[i] = lines[i].slice(0, maxCharsPerLine);
+        }
+
+        return lines;
+      }
+
+      function wrapCsv(text, maxCharsPerLine, maxLines) {
+        const s = String(text || "").trim();
+        if (!s) return Array(maxLines).fill("");
+
+        const parts = s.split(",").map(p => p.trim()).filter(Boolean);
+        const lines = [];
+        let line = "";
+
+        for (const p of parts) {
+          const piece = line ? `${line}, ${p}` : p;
+          if (piece.length <= maxCharsPerLine) {
+            line = piece;
+            continue;
+          }
+
+          if (line) lines.push(line);
+          line = p;
+
+          if (lines.length >= maxLines) break;
+        }
+
+        if (lines.length < maxLines && line) lines.push(line);
+        while (lines.length < maxLines) lines.push("");
+
+        for (let i = 0; i < lines.length; i++) {
+          if (lines[i].length > maxCharsPerLine) lines[i] = lines[i].slice(0, maxCharsPerLine);
+        }
+
+        return lines;
       }
 
       const DEBUG = {
@@ -90,7 +156,6 @@
         line5aSignReturn: getBool("line5aSignReturn") || false,
         line5aSubstituteOrAddRep: getBool("line5aSubstituteOrAddRep") || true,
 
-        // Rep (accept both key styles, but NEVER print placeholders)
         repAddr1: get("2848Rep1AddressLine1") || get("2848_Rep_1_Address_Line_1"),
         repAddr2: get("2848Rep1AddressLine2") || get("2848_Rep_1_Address_Line_2"),
         repCAF:   get("2848Rep1CAF")          || get("2848_Rep_1_CAF"),
@@ -148,14 +213,12 @@
         summary.appendChild(d);
       };
 
-      const clamp = (s, n) => (s || "").length > n ? (s || "").slice(0, n - 1) + "…" : (s || "");
       const join = (arr) => arr.map(v => (v || "").trim()).filter(Boolean).join("\n");
 
       const taxpayerName = [data.clientFirstName, data.clientLastName].filter(Boolean).join(" ").trim();
       const repName = [data.repFirst, data.repLast].filter(Boolean).join(" ").trim();
       const yearRange = (data.yearFrom && data.yearTo) ? `${data.yearFrom} through ${data.yearTo}` : (data.yearFrom || data.yearTo || "");
 
-      // Rep block: Address 2 disappears if empty/unresolved
       const repAddr12 = [data.repAddr1, data.repAddr2].filter(Boolean).join(" ").trim();
       const repCityStateZip =
         [data.repCity, data.repState].filter(Boolean).join(", ") +
@@ -167,7 +230,6 @@
         repCityStateZip
       ]);
 
-      // Taxpayer block: Address 2 disappears if empty/unresolved
       const taxpayerAddr12 = [data.clientAddressLine1, data.clientAddressLine2].filter(Boolean).join(" ").trim();
       const taxpayerCityStateZip =
         [data.clientAddressTown, data.clientAddressRegion].filter(Boolean).join(", ") +
@@ -303,7 +365,6 @@
           font
         );
 
-        // FIX APPLIED HERE: formatted TIN with dashes when 9 digits
         page1.drawText(formatTin(data.TaxpayerSSNITIN), {
           x: ax(POS.taxpayerTIN.x),
           y: ay(POS.taxpayerTIN.y),
@@ -327,39 +388,44 @@
         page1.drawText((data.repTel || "").trim(),  { x: ax(POS.repTel.x),  y: ay(POS.repTel.y),  size: POS.repTel.size,  font, color: rgb(0, 0, 0) });
         page1.drawText((data.repFax || "").trim(),  { x: ax(POS.repFax.x),  y: ay(POS.repFax.y),  size: POS.repFax.size,  font, color: rgb(0, 0, 0) });
 
-        const acts = [
-          { desc: (data.line3DescriptionOfMatter || "").trim(), form: (data.line3TaxFormNumber || "").trim(), years: yearRange },
-          { desc: "", form: "", years: "" },
-          { desc: "", form: "", years: "" }
-        ];
+        // FIX: Wrap long description + form list into rows 1-3
+        const descLines = wrapWords((data.line3DescriptionOfMatter || "").trim(), 58, 3);
+        const formLines = wrapCsv((data.line3TaxFormNumber || "").trim(), 18, 3);
+        const yearLines = wrapWords(yearRange, 22, 3);
 
-        acts.forEach((row, i) => {
+        for (let i = 0; i < 3; i++) {
           const idx = i + 1;
 
-          page1.drawText(clamp(row.desc, 75), {
-            x: ax(POS[`acts_desc_${idx}`].x),
-            y: ay(POS[`acts_desc_${idx}`].y),
-            size: POS[`acts_desc_${idx}`].size,
-            font,
-            color: rgb(0, 0, 0)
-          });
+          if (descLines[i]) {
+            page1.drawText(descLines[i], {
+              x: ax(POS[`acts_desc_${idx}`].x),
+              y: ay(POS[`acts_desc_${idx}`].y),
+              size: POS[`acts_desc_${idx}`].size,
+              font,
+              color: rgb(0, 0, 0)
+            });
+          }
 
-          page1.drawText(clamp(row.form, 12), {
-            x: ax(POS[`acts_form_${idx}`].x),
-            y: ay(POS[`acts_form_${idx}`].y),
-            size: POS[`acts_form_${idx}`].size,
-            font,
-            color: rgb(0, 0, 0)
-          });
+          if (formLines[i]) {
+            page1.drawText(formLines[i], {
+              x: ax(POS[`acts_form_${idx}`].x),
+              y: ay(POS[`acts_form_${idx}`].y),
+              size: POS[`acts_form_${idx}`].size,
+              font,
+              color: rgb(0, 0, 0)
+            });
+          }
 
-          page1.drawText(clamp(row.years, 22), {
-            x: ax(POS[`acts_year_${idx}`].x),
-            y: ay(POS[`acts_year_${idx}`].y),
-            size: POS[`acts_year_${idx}`].size,
-            font,
-            color: rgb(0, 0, 0)
-          });
-        });
+          if (yearLines[i]) {
+            page1.drawText(yearLines[i], {
+              x: ax(POS[`acts_year_${idx}`].x),
+              y: ay(POS[`acts_year_${idx}`].y),
+              size: POS[`acts_year_${idx}`].size,
+              font,
+              color: rgb(0, 0, 0)
+            });
+          }
+        }
 
         if (data.line5aAuthorizeDisclosure) drawCheck(page1, ax(POS.line5aAuthorizeDisclosure_Check.x), ay(POS.line5aAuthorizeDisclosure_Check.y), font);
         if (data.line5aAccessRecords)      drawCheck(page1, ax(POS.line5aAccessISP_Check.x),          ay(POS.line5aAccessISP_Check.y),          font);
