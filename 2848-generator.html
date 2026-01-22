@@ -34,7 +34,7 @@
 
       const qs = new URLSearchParams(window.location.search);
       const get = (k) => (qs.get(k) || "").trim();
-      const getBool = (k) => ["1","true","yes","on"].includes((qs.get(k)||"").toLowerCase());
+      const getBool = (k) => ["1", "true", "yes", "on"].includes((qs.get(k) || "").toLowerCase());
 
       const DEBUG = {
         grid: get("grid") === "1",
@@ -45,66 +45,66 @@
       };
 
       const data = {
-        clientFirstName: get("clientFirstName") || "{{clientFirstName}}",
-        clientLastName: get("clientLastName") || "{{clientLastName}}",
+        TaxpayerSSNITIN: get("TaxpayerSSNITIN") || "{{TaxpayerSSNITIN}}",
         clientAddressLine1: get("clientAddressLine1") || "{{clientAddressLine1}}",
         clientAddressLine2: get("clientAddressLine2") || "{{clientAddressLine2}}",
-        clientAddressTown: get("clientAddressTown") || "{{clientAddressTown}}",
         clientAddressRegion: get("clientAddressRegion") || "{{clientAddressRegion}}",
+        clientAddressTown: get("clientAddressTown") || "{{clientAddressTown}}",
         clientAddressZip: get("clientAddressZip") || "{{clientAddressZip}}",
-        TaxpayerSSNITIN: get("TaxpayerSSNITIN") || "{{TaxpayerSSNITIN}}",
-
-        repFirst: get("2848_Rep_1_First_Name") || "{{2848_Rep_1_First_Name}}",
-        repLast: get("2848_Rep_1_Last_Name") || "{{2848_Rep_1_Last_Name}}",
-        repAddr1: get("2848_Rep_1_Address_Line_1") || "{{2848_Rep_1_Address_Line_1}}",
-        repAddr2: get("2848_Rep_1_Address_Line_2") || "{{2848_Rep_1_Address_Line_2}}",
-        repCity: get("2848_Rep_1_Address_City") || "{{2848_Rep_1_Address_City}}",
-        repState: get("2848_Rep_1_Address_State") || "{{2848_Rep_1_Address_State}}",
-        repZip: get("2848_Rep_1_Address_Zip") || "{{2848_Rep_1_Address_Zip}}",
-        repCAF: get("2848_Rep_1_CAF") || "{{2848_Rep_1_CAF}}",
-        repPTIN: get("2848_Rep_1_PTIN") || "{{2848_Rep_1_PTIN}}",
-        repTel: get("2848_Rep_1_Telephone") || "{{2848_Rep_1_Telephone}}",
-        repFax: get("2848_Rep_1_Fax") || "{{2848_Rep_1_Fax}}",
+        clientFirstName: get("clientFirstName") || "{{clientFirstName}}",
+        clientLastName: get("clientLastName") || "{{clientLastName}}",
 
         line3DescriptionOfMatter: get("line3DescriptionOfMatter") || "Income Tax",
         line3TaxFormNumber: get("line3TaxFormNumber") || "1040",
-        yearFrom: get("myOrganizationIRSCurrentTaxYear10ComplianceYears") || "{{myOrganizationIRSCurrentTaxYear10ComplianceYears}}",
-        yearTo: get("myOrganizationIRSCurrentTaxYear") || "{{myOrganizationIRSCurrentTaxYear}}",
 
-        line5aAuthorizeDisclosure: getBool("line5aAuthorizeDisclosure") || false,
         line5aAccessRecords: getBool("line5aAccessRecords") || true,
+        line5aAuthorizeDisclosure: getBool("line5aAuthorizeDisclosure") || false,
         line5aSignReturn: getBool("line5aSignReturn") || false,
-        line5aSubstituteOrAddRep: getBool("line5aSubstituteOrAddRep") || true
+        line5aSubstituteOrAddRep: getBool("line5aSubstituteOrAddRep") || true,
+
+        repAddr1: get("2848_Rep_1_Address_Line_1") || "{{2848_Rep_1_Address_Line_1}}",
+        repAddr2: get("2848_Rep_1_Address_Line_2") || "{{2848_Rep_1_Address_Line_2}}",
+        repCAF: get("2848_Rep_1_CAF") || "{{2848_Rep_1_CAF}}",
+        repCity: get("2848_Rep_1_Address_City") || "{{2848_Rep_1_Address_City}}",
+        repFax: get("2848_Rep_1_Fax") || "{{2848_Rep_1_Fax}}",
+        repFirst: get("2848_Rep_1_First_Name") || "{{2848_Rep_1_First_Name}}",
+        repLast: get("2848_Rep_1_Last_Name") || "{{2848_Rep_1_Last_Name}}",
+        repPTIN: get("2848_Rep_1_PTIN") || "{{2848_Rep_1_PTIN}}",
+        repState: get("2848_Rep_1_Address_State") || "{{2848_Rep_1_Address_State}}",
+        repTel: get("2848_Rep_1_Telephone") || "{{2848_Rep_1_Telephone}}",
+        repZip: get("2848_Rep_1_Address_Zip") || "{{2848_Rep_1_Address_Zip}}",
+
+        yearFrom: get("myOrganizationIRSCurrentTaxYear10ComplianceYears") || "{{myOrganizationIRSCurrentTaxYear10ComplianceYears}}",
+        yearTo: get("myOrganizationIRSCurrentTaxYear") || "{{myOrganizationIRSCurrentTaxYear}}"
       };
 
       const POS = {
-        acts_desc_1: { x: 40,  y: 267, size: 9 },
-        acts_desc_2: { x: 40,  y: 237, size: 9 },
-        acts_desc_3: { x: 40,  y: 207, size: 9 },
+        acts_desc_1: { x: 40,  y: 270, size: 9 },
+        acts_desc_2: { x: 40,  y: 245, size: 9 },
+        acts_desc_3: { x: 40,  y: 220, size: 9 },
 
-        acts_form_1: { x: 330, y: 267, size: 9 },
-        acts_form_2: { x: 330, y: 237, size: 9 },
-        acts_form_3: { x: 330, y: 207, size: 9 },
+        acts_form_1: { x: 330, y: 270, size: 9 },
+        acts_form_2: { x: 330, y: 245, size: 9 },
+        acts_form_3: { x: 330, y: 220, size: 9 },
 
-        acts_year_1: { x: 450, y: 267, size: 9 },
-        acts_year_2: { x: 450, y: 237, size: 9 },
-        acts_year_3: { x: 450, y: 207, size: 9 },
+        acts_year_1: { x: 450, y: 270, size: 9 },
+        acts_year_2: { x: 450, y: 245, size: 9 },
+        acts_year_3: { x: 450, y: 220, size: 9 },
 
-        line5aAuthorizeDisclosure_Check: { x: 55,  y: 135 },
-        line5aAccessISP_Check:          { x: 210, y: 135 },
-        line5aSubAddRep_Check:          { x: 410, y: 135 },
-        line5aSignReturn_Check:         { x: 560, y: 135 },
+        line5aAccessISP_Check:           { x: 210, y: 130 },
+        line5aAuthorizeDisclosure_Check: { x: 55,  y: 130 },
+        line5aSignReturn_Check:          { x: 560, y: 130 },
+        line5aSubAddRep_Check:           { x: 410, y: 130 },
 
-        repBlock: { x: 70, y: 520, lineGap: 11, size: 9 },
+        repBlock: { x: 50, y: 515, lineGap: 11, size: 9 },
 
-        repCAF:  { x: 405, y: 570, size: 9 },
-        repPTIN: { x: 405, y: 555, size: 9 },
-        repTel:  { x: 405, y: 540, size: 9 },
-        repFax:  { x: 405, y: 525, size: 9 },
+        repCAF:  { x: 405, y: 540, size: 9 },
+        repPTIN: { x: 405, y: 525, size: 9 },
+        repTel:  { x: 405, y: 510, size: 9 },
+        repFax:  { x: 405, y: 495, size: 9 },
 
-        taxpayerAddress: { x: 70, y: 630, lineGap: 11, size: 9 },
-        taxpayerName: { x: 50, y: 650, size: 10 },
-        taxpayerTIN: { x: 400, y: 660, size: 9 }
+        taxpayerNameAddressBlock: { x: 50, y: 650, lineGap: 11, size: 9 },
+        taxpayerTIN: { x: 400, y: 650, size: 9 }
       };
 
       const status = document.getElementById("status");
@@ -117,23 +117,24 @@
         summary.appendChild(d);
       };
 
-      const join = (arr) => arr.map(v => (v || "").trim()).filter(Boolean).join("\n");
       const clamp = (s, n) => (s || "").length > n ? (s || "").slice(0, n - 1) + "…" : (s || "");
+      const join = (arr) => arr.map(v => (v || "").trim()).filter(Boolean).join("\n");
 
       const taxpayerName = [data.clientFirstName, data.clientLastName].filter(Boolean).join(" ").trim();
       const repName = [data.repFirst, data.repLast].filter(Boolean).join(" ").trim();
       const yearRange = (data.yearFrom && data.yearTo) ? `${data.yearFrom} through ${data.yearTo}` : (data.yearFrom || data.yearTo || "");
 
-      const taxpayerAddress = join([
-        data.clientAddressLine1,
-        data.clientAddressLine2,
-        [data.clientAddressTown, data.clientAddressRegion].filter(Boolean).join(", ") + (data.clientAddressZip ? " " + data.clientAddressZip : "")
-      ]);
-
       const repAddress = join([
         data.repAddr1,
         data.repAddr2,
         [data.repCity, data.repState].filter(Boolean).join(", ") + (data.repZip ? " " + data.repZip : "")
+      ]);
+
+      const taxpayerNameAddress = join([
+        taxpayerName,
+        data.clientAddressLine1,
+        data.clientAddressLine2,
+        [data.clientAddressTown, data.clientAddressRegion].filter(Boolean).join(", ") + (data.clientAddressZip ? " " + data.clientAddressZip : "")
       ]);
 
       pill("Matter", data.line3DescriptionOfMatter);
@@ -148,19 +149,19 @@
         const lines = (text || "").split("\n").map(s => s.trim()).filter(Boolean);
         let cy = y;
         for (const line of lines) {
-          page.drawText(line, { x, y: cy, size, font, color: rgb(0,0,0) });
+          page.drawText(line, { x, y: cy, size, font, color: rgb(0, 0, 0) });
           cy -= lineGap;
         }
       }
 
       function drawCheck(page, x, y, font) {
-        page.drawText("X", { x: x + 1, y: y - 3, size: 8, font, color: rgb(0,0,0) });
+        page.drawText("X", { x: x + 1, y: y - 3, size: 8, font, color: rgb(0, 0, 0) });
       }
 
       function drawCrosshair(page, x, y) {
         const len = 8;
-        page.drawLine({ start: { x: x - len, y }, end: { x: x + len, y }, thickness: 0.75, color: rgb(1,0,0) });
-        page.drawLine({ start: { x, y: y - len }, end: { x, y: y + len }, thickness: 0.75, color: rgb(1,0,0) });
+        page.drawLine({ start: { x: x - len, y }, end: { x: x + len, y }, thickness: 0.75, color: rgb(1, 0, 0) });
+        page.drawLine({ start: { x, y: y - len }, end: { x, y: y + len }, thickness: 0.75, color: rgb(1, 0, 0) });
       }
 
       function drawGrid(page, font, width, height, step) {
@@ -175,7 +176,7 @@
             thickness: isMajor ? thick : thin,
             color: rgb(0.75, 0.75, 0.75)
           });
-          page.drawText(String(x), { x: Math.min(x + 2, width - 18), y: height - 12, size: 7, font, color: rgb(0.35,0.35,0.35) });
+          page.drawText(String(x), { x: Math.min(x + 2, width - 18), y: height - 12, size: 7, font, color: rgb(0.35, 0.35, 0.35) });
         }
 
         for (let y = 0; y <= height; y += step) {
@@ -186,10 +187,10 @@
             thickness: isMajor ? thick : thin,
             color: rgb(0.75, 0.75, 0.75)
           });
-          page.drawText(String(y), { x: 2, y: Math.min(y + 2, height - 10), size: 7, font, color: rgb(0.35,0.35,0.35) });
+          page.drawText(String(y), { x: 2, y: Math.min(y + 2, height - 10), size: 7, font, color: rgb(0.35, 0.35, 0.35) });
         }
 
-        page.drawText(`GRID step=${step}  ox=${DEBUG.ox}  oy=${DEBUG.oy}`, { x: 12, y: height - 26, size: 9, font, color: rgb(0.2,0.2,0.2) });
+        page.drawText(`GRID step=${step}  ox=${DEBUG.ox}  oy=${DEBUG.oy}`, { x: 12, y: height - 26, size: 9, font, color: rgb(0.2, 0.2, 0.2) });
       }
 
       function drawAnchorLabels(page, font) {
@@ -200,8 +201,10 @@
           ["line5aAccessISP_Check", POS.line5aAccessISP_Check.x, POS.line5aAccessISP_Check.y],
           ["repBlock", POS.repBlock.x, POS.repBlock.y],
           ["repCAF", POS.repCAF.x, POS.repCAF.y],
-          ["taxpayerAddress", POS.taxpayerAddress.x, POS.taxpayerAddress.y],
-          ["taxpayerName", POS.taxpayerName.x, POS.taxpayerName.y],
+          ["repFax", POS.repFax.x, POS.repFax.y],
+          ["repPTIN", POS.repPTIN.x, POS.repPTIN.y],
+          ["repTel", POS.repTel.x, POS.repTel.y],
+          ["taxpayerNameAddressBlock", POS.taxpayerNameAddressBlock.x, POS.taxpayerNameAddressBlock.y],
           ["taxpayerTIN", POS.taxpayerTIN.x, POS.taxpayerTIN.y]
         ];
 
@@ -209,7 +212,7 @@
           const px = ax(x);
           const py = ay(y);
           drawCrosshair(page, px, py);
-          page.drawText(`${name} (${x},${y})`, { x: px + 10, y: py + 2, size: 7, font, color: rgb(1,0,0) });
+          page.drawText(`${name} (${x},${y})`, { x: px + 10, y: py + 2, size: 7, font, color: rgb(1, 0, 0) });
         });
       }
 
@@ -230,16 +233,38 @@
         if (DEBUG.grid) drawGrid(page1, font, width, height, DEBUG.gridStep);
         if (DEBUG.labels) drawAnchorLabels(page1, font);
 
-        page1.drawText(taxpayerName, { x: ax(POS.taxpayerName.x), y: ay(POS.taxpayerName.y), size: POS.taxpayerName.size, font, color: rgb(0,0,0) });
-        drawMultiline(page1, taxpayerAddress, ax(POS.taxpayerAddress.x), ay(POS.taxpayerAddress.y), POS.taxpayerAddress.size, POS.taxpayerAddress.lineGap, font);
-        page1.drawText((data.TaxpayerSSNITIN || "").trim(), { x: ax(POS.taxpayerTIN.x), y: ay(POS.taxpayerTIN.y), size: POS.taxpayerTIN.size, font, color: rgb(0,0,0) });
+        drawMultiline(
+          page1,
+          taxpayerNameAddress,
+          ax(POS.taxpayerNameAddressBlock.x),
+          ay(POS.taxpayerNameAddressBlock.y),
+          POS.taxpayerNameAddressBlock.size,
+          POS.taxpayerNameAddressBlock.lineGap,
+          font
+        );
 
-        drawMultiline(page1, join([repName, repAddress]), ax(POS.repBlock.x), ay(POS.repBlock.y), POS.repBlock.size, POS.repBlock.lineGap, font);
+        page1.drawText((data.TaxpayerSSNITIN || "").trim(), {
+          x: ax(POS.taxpayerTIN.x),
+          y: ay(POS.taxpayerTIN.y),
+          size: POS.taxpayerTIN.size,
+          font,
+          color: rgb(0, 0, 0)
+        });
 
-        page1.drawText((data.repCAF || "").trim(),  { x: ax(POS.repCAF.x),  y: ay(POS.repCAF.y),  size: POS.repCAF.size,  font, color: rgb(0,0,0) });
-        page1.drawText((data.repPTIN || "").trim(), { x: ax(POS.repPTIN.x), y: ay(POS.repPTIN.y), size: POS.repPTIN.size, font, color: rgb(0,0,0) });
-        page1.drawText((data.repTel || "").trim(),  { x: ax(POS.repTel.x),  y: ay(POS.repTel.y),  size: POS.repTel.size,  font, color: rgb(0,0,0) });
-        page1.drawText((data.repFax || "").trim(),  { x: ax(POS.repFax.x),  y: ay(POS.repFax.y),  size: POS.repFax.size,  font, color: rgb(0,0,0) });
+        drawMultiline(
+          page1,
+          join([repName, repAddress]),
+          ax(POS.repBlock.x),
+          ay(POS.repBlock.y),
+          POS.repBlock.size,
+          POS.repBlock.lineGap,
+          font
+        );
+
+        page1.drawText((data.repCAF || "").trim(),  { x: ax(POS.repCAF.x),  y: ay(POS.repCAF.y),  size: POS.repCAF.size,  font, color: rgb(0, 0, 0) });
+        page1.drawText((data.repPTIN || "").trim(), { x: ax(POS.repPTIN.x), y: ay(POS.repPTIN.y), size: POS.repPTIN.size, font, color: rgb(0, 0, 0) });
+        page1.drawText((data.repTel || "").trim(),  { x: ax(POS.repTel.x),  y: ay(POS.repTel.y),  size: POS.repTel.size,  font, color: rgb(0, 0, 0) });
+        page1.drawText((data.repFax || "").trim(),  { x: ax(POS.repFax.x),  y: ay(POS.repFax.y),  size: POS.repFax.size,  font, color: rgb(0, 0, 0) });
 
         const acts = [
           { desc: (data.line3DescriptionOfMatter || "").trim(), form: (data.line3TaxFormNumber || "").trim(), years: yearRange },
@@ -249,9 +274,29 @@
 
         acts.forEach((row, i) => {
           const idx = i + 1;
-          page1.drawText(clamp(row.desc, 75),  { x: ax(POS[`acts_desc_${idx}`].x), y: ay(POS[`acts_desc_${idx}`].y), size: POS[`acts_desc_${idx}`].size, font, color: rgb(0,0,0) });
-          page1.drawText(clamp(row.form, 12),  { x: ax(POS[`acts_form_${idx}`].x), y: ay(POS[`acts_form_${idx}`].y), size: POS[`acts_form_${idx}`].size, font, color: rgb(0,0,0) });
-          page1.drawText(clamp(row.years, 22), { x: ax(POS[`acts_year_${idx}`].x), y: ay(POS[`acts_year_${idx}`].y), size: POS[`acts_year_${idx}`].size, font, color: rgb(0,0,0) });
+          page1.drawText(clamp(row.desc, 75), {
+            x: ax(POS[`acts_desc_${idx}`].x),
+            y: ay(POS[`acts_desc_${idx}`].y),
+            size: POS[`acts_desc_${idx}`].size,
+            font,
+            color: rgb(0, 0, 0)
+          });
+
+          page1.drawText(clamp(row.form, 12), {
+            x: ax(POS[`acts_form_${idx}`].x),
+            y: ay(POS[`acts_form_${idx}`].y),
+            size: POS[`acts_form_${idx}`].size,
+            font,
+            color: rgb(0, 0, 0)
+          });
+
+          page1.drawText(clamp(row.years, 22), {
+            x: ax(POS[`acts_year_${idx}`].x),
+            y: ay(POS[`acts_year_${idx}`].y),
+            size: POS[`acts_year_${idx}`].size,
+            font,
+            color: rgb(0, 0, 0)
+          });
         });
 
         if (data.line5aAuthorizeDisclosure) drawCheck(page1, ax(POS.line5aAuthorizeDisclosure_Check.x), ay(POS.line5aAuthorizeDisclosure_Check.y), font);
