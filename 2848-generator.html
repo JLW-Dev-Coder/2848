@@ -33,11 +33,20 @@
     (function () {
       const { PDFDocument, rgb, StandardFonts } = PDFLib;
 
-      const BUILD_ID = "2848-align-2026-01-22-d";
+      const BUILD_ID = "2848-align-2026-01-22-e";
 
       const qs = new URLSearchParams(window.location.search);
-      const get = (k) => (qs.get(k) || "").trim();
-      const getBool = (k) => ["1", "true", "yes", "on"].includes((qs.get(k) || "").toLowerCase());
+
+      function clean(v) {
+        const s = String(v == null ? "" : v).trim();
+        if (!s) return "";
+        // Strip unresolved SuiteDash-style placeholders like {{fieldName}}
+        if (s.startsWith("{{") && s.endsWith("}}")) return "";
+        return s;
+      }
+
+      function get(k) { return clean(qs.get(k)); }
+      function getBool(k) { return ["1", "true", "yes", "on"].includes((qs.get(k) || "").toLowerCase()); }
 
       const DEBUG = {
         grid: get("grid") === "1",
@@ -54,17 +63,18 @@
         `Stamped onto a flattened IRS PDF (no form fields required). BUILD=${BUILD_ID}`;
 
       const data = {
-        TaxpayerSSNITIN: get("TaxpayerSSNITIN") || "{{TaxpayerSSNITIN}}",
-        clientAddressLine1: get("clientAddressLine1") || "{{clientAddressLine1}}",
-        clientAddressLine2: get("clientAddressLine2") || "{{clientAddressLine2}}",
-        clientAddressRegion: get("clientAddressRegion") || "{{clientAddressRegion}}",
-        clientAddressTown: get("clientAddressTown") || "{{clientAddressTown}}",
-        clientAddressZip: get("clientAddressZip") || "{{clientAddressZip}}",
-        clientFirstName: get("clientFirstName") || "{{clientFirstName}}",
-        clientLastName: get("clientLastName") || "{{clientLastName}}",
+        TaxpayerSSNITIN: get("TaxpayerSSNITIN"),
+
+        clientAddressLine1: get("clientAddressLine1"),
+        clientAddressLine2: get("clientAddressLine2"),
+        clientAddressRegion: get("clientAddressRegion"),
+        clientAddressTown: get("clientAddressTown"),
+        clientAddressZip: get("clientAddressZip"),
+        clientFirstName: get("clientFirstName"),
+        clientLastName: get("clientLastName"),
 
         line3DescriptionOfMatter: get("line3DescriptionOfMatter") ||
-  "Income, Employment, Payroll, Excise, Estate, Gift, Civil Penalty, Sec. 4980H Shared Responsibility Payment",
+          "Income, Employment, Payroll, Excise, Estate, Gift, Civil Penalty, Sec. 4980H Shared Responsibility Payment",
 
         line3TaxFormNumber: get("line3TaxFormNumber") || "940, 941, 720, 1040, 1120, 1120S",
 
@@ -73,20 +83,21 @@
         line5aSignReturn: getBool("line5aSignReturn") || false,
         line5aSubstituteOrAddRep: getBool("line5aSubstituteOrAddRep") || true,
 
-        repAddr1: get("2848Rep1AddressLine1") || get("2848_Rep_1_Address_Line_1") || "{{2848Rep1AddressLine1}}",
-        repAddr2: get("2848Rep1AddressLine2") || get("2848_Rep_1_Address_Line_2") || "{{2848Rep1AddressLine2}}",
-        repCAF:   get("2848Rep1CAF")          || get("2848_Rep_1_CAF")            || "{{2848Rep1CAF}}",
-        repCity:  get("2848Rep1AddressCity")  || get("2848_Rep_1_Address_City")   || "{{2848Rep1AddressCity}}",
-        repFax:   get("2848Rep1Fax")          || get("2848_Rep_1_Fax")            || "{{2848Rep1Fax}}",
-        repFirst: get("2848Rep1FirstName")    || get("2848_Rep_1_First_Name")     || "{{2848Rep1FirstName}}",
-        repLast:  get("2848Rep1LastName")     || get("2848_Rep_1_Last_Name")      || "{{2848Rep1LastName}}",
-        repPTIN:  get("2848Rep1PTIN")         || get("2848_Rep_1_PTIN")           || "{{2848Rep1PTIN}}",
-        repState: get("2848Rep1AddressState") || get("2848_Rep_1_Address_State")  || "{{2848Rep1AddressState}}",
-        repTel:   get("2848Rep1Telephone")    || get("2848_Rep_1_Telephone")      || "{{2848Rep1Telephone}}",
-        repZip:   get("2848Rep1AddressZip")   || get("2848_Rep_1_Address_Zip")    || "{{2848Rep1AddressZip}}",
+        // Rep (accept both key styles, but NEVER print placeholders)
+        repAddr1: get("2848Rep1AddressLine1") || get("2848_Rep_1_Address_Line_1"),
+        repAddr2: get("2848Rep1AddressLine2") || get("2848_Rep_1_Address_Line_2"),
+        repCAF:   get("2848Rep1CAF")          || get("2848_Rep_1_CAF"),
+        repCity:  get("2848Rep1AddressCity")  || get("2848_Rep_1_Address_City"),
+        repFax:   get("2848Rep1Fax")          || get("2848_Rep_1_Fax"),
+        repFirst: get("2848Rep1FirstName")    || get("2848_Rep_1_First_Name"),
+        repLast:  get("2848Rep1LastName")     || get("2848_Rep_1_Last_Name"),
+        repPTIN:  get("2848Rep1PTIN")         || get("2848_Rep_1_PTIN"),
+        repState: get("2848Rep1AddressState") || get("2848_Rep_1_Address_State"),
+        repTel:   get("2848Rep1Telephone")    || get("2848_Rep_1_Telephone"),
+        repZip:   get("2848Rep1AddressZip")   || get("2848_Rep_1_Address_Zip"),
 
-        yearFrom: get("myOrganizationIRSCurrentTaxYear10ComplianceYears") || "{{myOrganizationIRSCurrentTaxYear10ComplianceYears}}",
-        yearTo: get("myOrganizationIRSCurrentTaxYear") || "{{myOrganizationIRSCurrentTaxYear}}"
+        yearFrom: get("myOrganizationIRSCurrentTaxYear10ComplianceYears"),
+        yearTo: get("myOrganizationIRSCurrentTaxYear")
       };
 
       const IRS_TEXT_SIZE = 8.5;
@@ -137,7 +148,7 @@
       const repName = [data.repFirst, data.repLast].filter(Boolean).join(" ").trim();
       const yearRange = (data.yearFrom && data.yearTo) ? `${data.yearFrom} through ${data.yearTo}` : (data.yearFrom || data.yearTo || "");
 
-      // Combine Rep Address 1 + 2 on SAME line, then City/State/Zip on next.
+      // Rep block: Address 2 disappears if empty/unresolved
       const repAddr12 = [data.repAddr1, data.repAddr2].filter(Boolean).join(" ").trim();
       const repCityStateZip =
         [data.repCity, data.repState].filter(Boolean).join(", ") +
@@ -149,7 +160,7 @@
         repCityStateZip
       ]);
 
-      // Combine Taxpayer Address 1 + 2 on SAME line, then City/State/Zip on next.
+      // Taxpayer block: Address 2 disappears if empty/unresolved
       const taxpayerAddr12 = [data.clientAddressLine1, data.clientAddressLine2].filter(Boolean).join(" ").trim();
       const taxpayerCityStateZip =
         [data.clientAddressTown, data.clientAddressRegion].filter(Boolean).join(", ") +
