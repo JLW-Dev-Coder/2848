@@ -15,8 +15,6 @@
   </style>
 </head>
 <body>
-  <h2 style="color:red">RUNNING BUILD XYZ</h2>
-
   <h1>Form 2848 Generator</h1>
   <p class="meta" id="buildMeta">Stamped onto a flattened IRS PDF (no form fields required).</p>
 
@@ -59,7 +57,7 @@
       const V = get("v") || String(Date.now());
 
       document.getElementById("buildMeta").textContent =
-        `Stamped onto a flattened IRS PDF (no form fields required). BUILD=${BUILD_ID}`;
+        "Instructions: 1) Complete all required fields above (including ClientLastName and ClientFirstName). 2) Click Generate PDF to download Page 1 (stamped/filled). 3) Open and e-sign Page 2 (Part II): sign directly under the client signature line, using the same representative details entered above. 4) Save and upload using this filename format: Form_2848_ClientLastName_ClientFirstName_DateSigned_YYYY_MMDD.";
 
       const data = {
         TaxpayerSSNITIN: get("TaxpayerSSNITIN"),
