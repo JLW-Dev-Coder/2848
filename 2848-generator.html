@@ -33,25 +33,25 @@
     (function () {
       const { PDFDocument, rgb, StandardFonts } = PDFLib;
 
-      const BUILD_ID = "2848-align-2026-01-22-f";
+      const BUILD_ID = "2848-align-2026-01-22-e";
 
       const qs = new URLSearchParams(window.location.search);
 
       function clean(v) {
         const s = String(v == null ? "" : v).trim();
         if (!s) return "";
+        // Strip unresolved SuiteDash-style placeholders like {{fieldName}}
         if (s.startsWith("{{") && s.endsWith("}}")) return "";
         return s;
       }
 
       function get(k) { return clean(qs.get(k)); }
-      function getBool(k) { return ["1","true","yes","on"].includes((qs.get(k)||"").toLowerCase()); }
+      function getBool(k) { return ["1", "true", "yes", "on"].includes((qs.get(k) || "").toLowerCase()); }
 
+      // FIX: Format taxpayer TIN as XXX-XX-XXXX when it is 9 digits
       function formatTin(v) {
         const digits = String(v || "").replace(/\D/g, "");
-        if (digits.length === 9) {
-          return `${digits.slice(0,3)}-${digits.slice(3,5)}-${digits.slice(5)}`;
-        }
+        if (digits.length === 9) return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
         return String(v || "").trim();
       }
 
@@ -72,16 +72,15 @@
       const data = {
         TaxpayerSSNITIN: get("TaxpayerSSNITIN"),
 
-        clientFirstName: get("clientFirstName"),
-        clientLastName: get("clientLastName"),
         clientAddressLine1: get("clientAddressLine1"),
         clientAddressLine2: get("clientAddressLine2"),
-        clientAddressTown: get("clientAddressTown"),
         clientAddressRegion: get("clientAddressRegion"),
+        clientAddressTown: get("clientAddressTown"),
         clientAddressZip: get("clientAddressZip"),
+        clientFirstName: get("clientFirstName"),
+        clientLastName: get("clientLastName"),
 
-        line3DescriptionOfMatter:
-          get("line3DescriptionOfMatter") ||
+        line3DescriptionOfMatter: get("line3DescriptionOfMatter") ||
           "Income, Employment, Payroll, Excise, Estate, Gift, Civil Penalty, Sec. 4980H Shared Responsibility Payment",
 
         line3TaxFormNumber: get("line3TaxFormNumber") || "940, 941, 720, 1040, 1120, 1120S",
@@ -91,75 +90,208 @@
         line5aSignReturn: getBool("line5aSignReturn") || false,
         line5aSubstituteOrAddRep: getBool("line5aSubstituteOrAddRep") || true,
 
-        repFirst: get("2848Rep1FirstName") || get("2848_Rep_1_First_Name"),
-        repLast:  get("2848Rep1LastName")  || get("2848_Rep_1_Last_Name"),
+        // Rep (accept both key styles, but NEVER print placeholders)
         repAddr1: get("2848Rep1AddressLine1") || get("2848_Rep_1_Address_Line_1"),
         repAddr2: get("2848Rep1AddressLine2") || get("2848_Rep_1_Address_Line_2"),
-        repCity:  get("2848Rep1AddressCity")  || get("2848_Rep_1_Address_City"),
-        repState: get("2848Rep1AddressState") || get("2848_Rep_1_Address_State"),
-        repZip:   get("2848Rep1AddressZip")   || get("2848_Rep_1_Address_Zip"),
         repCAF:   get("2848Rep1CAF")          || get("2848_Rep_1_CAF"),
-        repPTIN:  get("2848Rep1PTIN")         || get("2848_Rep_1_PTIN"),
-        repTel:   get("2848Rep1Telephone")    || get("2848_Rep_1_Telephone"),
+        repCity:  get("2848Rep1AddressCity")  || get("2848_Rep_1_Address_City"),
         repFax:   get("2848Rep1Fax")          || get("2848_Rep_1_Fax"),
+        repFirst: get("2848Rep1FirstName")    || get("2848_Rep_1_First_Name"),
+        repLast:  get("2848Rep1LastName")     || get("2848_Rep_1_Last_Name"),
+        repPTIN:  get("2848Rep1PTIN")         || get("2848_Rep_1_PTIN"),
+        repState: get("2848Rep1AddressState") || get("2848_Rep_1_Address_State"),
+        repTel:   get("2848Rep1Telephone")    || get("2848_Rep_1_Telephone"),
+        repZip:   get("2848Rep1AddressZip")   || get("2848_Rep_1_Address_Zip"),
 
         yearFrom: get("myOrganizationIRSCurrentTaxYear10ComplianceYears"),
-        yearTo:   get("myOrganizationIRSCurrentTaxYear")
+        yearTo: get("myOrganizationIRSCurrentTaxYear")
       };
 
       const IRS_TEXT_SIZE = 8.5;
 
       const POS = {
+        acts_desc_1: { x: 40,  y: 230, size: IRS_TEXT_SIZE },
+        acts_desc_2: { x: 40,  y: 205, size: IRS_TEXT_SIZE },
+        acts_desc_3: { x: 40,  y: 180, size: IRS_TEXT_SIZE },
+
+        acts_form_1: { x: 330, y: 230, size: IRS_TEXT_SIZE },
+        acts_form_2: { x: 330, y: 205, size: IRS_TEXT_SIZE },
+        acts_form_3: { x: 330, y: 180, size: IRS_TEXT_SIZE },
+
+        acts_year_1: { x: 474, y: 230, size: IRS_TEXT_SIZE },
+        acts_year_2: { x: 474, y: 205, size: IRS_TEXT_SIZE },
+        acts_year_3: { x: 474, y: 180, size: IRS_TEXT_SIZE },
+
+        line5aAccessISP_Check:           { x: 230, y: 137 },
+        line5aAuthorizeDisclosure_Check: { x: 55,  y: 130 },
+        line5aSignReturn_Check:          { x: 560, y: 130 },
+        line5aSubAddRep_Check:           { x: 230, y: 126 },
+
+        repBlock: { x: 40, y: 565, lineGap: 11, size: IRS_TEXT_SIZE },
+
+        repCAF:  { x: 395, y: 578, size: IRS_TEXT_SIZE },
+        repPTIN: { x: 396, y: 566, size: IRS_TEXT_SIZE },
+        repTel:  { x: 413, y: 553, size: IRS_TEXT_SIZE },
+        repFax:  { x: 405, y: 541, size: IRS_TEXT_SIZE },
+
         taxpayerNameAddressBlock: { x: 40, y: 640, lineGap: 9, size: IRS_TEXT_SIZE },
-        taxpayerTIN: { x: 348, y: 640, size: IRS_TEXT_SIZE },
-        repBlock: { x: 40, y: 565, lineGap: 11, size: IRS_TEXT_SIZE }
+        taxpayerTIN: { x: 348, y: 640, size: IRS_TEXT_SIZE }
       };
 
-      const taxpayerName = [data.clientFirstName, data.clientLastName].filter(Boolean).join(" ");
-      const taxpayerAddr12 = [data.clientAddressLine1, data.clientAddressLine2].filter(Boolean).join(" ");
-      const taxpayerCityStateZip =
-        [data.clientAddressTown, data.clientAddressRegion].filter(Boolean).join(", ") +
-        (data.clientAddressZip ? " " + data.clientAddressZip : "");
+      const status = document.getElementById("status");
+      const summary = document.getElementById("summary");
 
-      const taxpayerNameAddress = [
-        taxpayerName,
-        taxpayerAddr12,
-        taxpayerCityStateZip
-      ].filter(Boolean).join("\n");
+      const pill = (label, value) => {
+        const d = document.createElement("div");
+        d.className = "pill";
+        d.textContent = value ? `${label}: ${value}` : `${label}: (blank)`;
+        summary.appendChild(d);
+      };
 
-      const repName = [data.repFirst, data.repLast].filter(Boolean).join(" ");
-      const repAddr12 = [data.repAddr1, data.repAddr2].filter(Boolean).join(" ");
+      const clamp = (s, n) => (s || "").length > n ? (s || "").slice(0, n - 1) + "…" : (s || "");
+      const join = (arr) => arr.map(v => (v || "").trim()).filter(Boolean).join("\n");
+
+      const taxpayerName = [data.clientFirstName, data.clientLastName].filter(Boolean).join(" ").trim();
+      const repName = [data.repFirst, data.repLast].filter(Boolean).join(" ").trim();
+      const yearRange = (data.yearFrom && data.yearTo) ? `${data.yearFrom} through ${data.yearTo}` : (data.yearFrom || data.yearTo || "");
+
+      // Rep block: Address 2 disappears if empty/unresolved
+      const repAddr12 = [data.repAddr1, data.repAddr2].filter(Boolean).join(" ").trim();
       const repCityStateZip =
         [data.repCity, data.repState].filter(Boolean).join(", ") +
         (data.repZip ? " " + data.repZip : "");
 
-      const repBlockText = [
+      const repBlockText = join([
         repName,
         repAddr12,
         repCityStateZip
-      ].filter(Boolean).join("\n");
+      ]);
 
-      function ax(x){ return x + DEBUG.ox; }
-      function ay(y){ return y + DEBUG.oy; }
+      // Taxpayer block: Address 2 disappears if empty/unresolved
+      const taxpayerAddr12 = [data.clientAddressLine1, data.clientAddressLine2].filter(Boolean).join(" ").trim();
+      const taxpayerCityStateZip =
+        [data.clientAddressTown, data.clientAddressRegion].filter(Boolean).join(", ") +
+        (data.clientAddressZip ? " " + data.clientAddressZip : "");
 
-      function drawMultiline(page, text, x, y, size, gap, font) {
+      const taxpayerNameAddress = join([
+        taxpayerName,
+        taxpayerAddr12,
+        taxpayerCityStateZip
+      ]);
+
+      pill("Build", BUILD_ID);
+      pill("Matter", data.line3DescriptionOfMatter);
+      pill("Representative", repName);
+      pill("Tax form", data.line3TaxFormNumber);
+      pill("Taxpayer", taxpayerName);
+
+      function ax(x) { return x + DEBUG.ox; }
+      function ay(y) { return y + DEBUG.oy; }
+
+      function drawMultiline(page, text, x, y, size, lineGap, font) {
+        const lines = (text || "").split("\n").map(s => s.trim()).filter(Boolean);
         let cy = y;
-        text.split("\n").forEach(line => {
-          page.drawText(line, { x, y: cy, size, font, color: rgb(0,0,0) });
-          cy -= gap;
+        for (const line of lines) {
+          page.drawText(line, { x, y: cy, size, font, color: rgb(0, 0, 0) });
+          cy -= lineGap;
+        }
+      }
+
+      function drawCheck(page, x, y, font) {
+        page.drawText("X", { x: x + 1, y: y - 3, size: 8, font, color: rgb(0, 0, 0) });
+      }
+
+      function drawCrosshair(page, x, y) {
+        const len = 8;
+        page.drawLine({ start: { x: x - len, y }, end: { x: x + len, y }, thickness: 0.75, color: rgb(1, 0, 0) });
+        page.drawLine({ start: { x, y: y - len }, end: { x, y: y + len }, thickness: 0.75, color: rgb(1, 0, 0) });
+      }
+
+      function drawGrid(page, font, width, height, step) {
+        const thin = 0.4;
+        const thick = 0.9;
+
+        for (let x = 0; x <= width; x += step) {
+          const isMajor = (x % (step * 2) === 0);
+          page.drawLine({
+            start: { x, y: 0 },
+            end: { x, y: height },
+            thickness: isMajor ? thick : thin,
+            color: rgb(0.75, 0.75, 0.75)
+          });
+          page.drawText(String(x), { x: Math.min(x + 2, width - 18), y: height - 12, size: 7, font, color: rgb(0.35, 0.35, 0.35) });
+        }
+
+        for (let y = 0; y <= height; y += step) {
+          const isMajor = (y % (step * 2) === 0);
+          page.drawLine({
+            start: { x: 0, y },
+            end: { x: width, y },
+            thickness: isMajor ? thick : thin,
+            color: rgb(0.75, 0.75, 0.75)
+          });
+          page.drawText(String(y), { x: 2, y: Math.min(y + 2, height - 10), size: 7, font, color: rgb(0.35, 0.35, 0.35) });
+        }
+
+        page.drawText(`GRID step=${step} ox=${DEBUG.ox} oy=${DEBUG.oy} BUILD=${BUILD_ID}`, {
+          x: 12,
+          y: height - 26,
+          size: 9,
+          font,
+          color: rgb(0.2, 0.2, 0.2)
+        });
+      }
+
+      function drawAnchorLabels(page, font) {
+        const anchors = [
+          ["acts_desc_1", POS.acts_desc_1.x, POS.acts_desc_1.y],
+          ["acts_form_1", POS.acts_form_1.x, POS.acts_form_1.y],
+          ["acts_year_1", POS.acts_year_1.x, POS.acts_year_1.y],
+          ["line5aAccessISP_Check", POS.line5aAccessISP_Check.x, POS.line5aAccessISP_Check.y],
+          ["repBlock", POS.repBlock.x, POS.repBlock.y],
+          ["repCAF", POS.repCAF.x, POS.repCAF.y],
+          ["repFax", POS.repFax.x, POS.repFax.y],
+          ["repPTIN", POS.repPTIN.x, POS.repPTIN.y],
+          ["repTel", POS.repTel.x, POS.repTel.y],
+          ["taxpayerNameAddressBlock", POS.taxpayerNameAddressBlock.x, POS.taxpayerNameAddressBlock.y],
+          ["taxpayerTIN", POS.taxpayerTIN.x, POS.taxpayerTIN.y]
+        ];
+
+        anchors.forEach(([name, x, y]) => {
+          const px = ax(x);
+          const py = ay(y);
+          drawCrosshair(page, px, py);
+          page.drawText(`${name} (${x},${y})`, { x: px + 10, y: py + 2, size: 7, font, color: rgb(1, 0, 0) });
         });
       }
 
       async function generate() {
         status.textContent = "Generating PDF…";
 
-        const res = await fetch(`./f2848.pdf?v=${encodeURIComponent(V)}`, { cache: "no-store" });
-        if (!res.ok) throw new Error("PDF fetch failed");
+        const pdfUrl = `./f2848.pdf?v=${encodeURIComponent(V)}`;
+        const res = await fetch(pdfUrl, { cache: "no-store" });
+        if (!res.ok) throw new Error(`PDF fetch failed: ${res.status} ${res.statusText}`);
         const pdfBytes = await res.arrayBuffer();
 
         const pdfDoc = await PDFDocument.load(pdfBytes);
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const page1 = pdfDoc.getPages()[0];
+
+        const { width, height } = page1.getSize();
+        page1.setCropBox(0, 0, width, height);
+
+        if (DEBUG.grid) drawGrid(page1, font, width, height, DEBUG.gridStep);
+        if (DEBUG.labels) drawAnchorLabels(page1, font);
+
+        if (DEBUG.stamp) {
+          page1.drawText(`BUILD=${BUILD_ID} ox=${DEBUG.ox} oy=${DEBUG.oy}`, {
+            x: 12,
+            y: 40,
+            size: 10,
+            font,
+            color: rgb(1, 0, 0)
+          });
+        }
 
         drawMultiline(
           page1,
@@ -171,12 +303,13 @@
           font
         );
 
+        // FIX APPLIED HERE: formatted TIN with dashes when 9 digits
         page1.drawText(formatTin(data.TaxpayerSSNITIN), {
           x: ax(POS.taxpayerTIN.x),
           y: ay(POS.taxpayerTIN.y),
           size: POS.taxpayerTIN.size,
           font,
-          color: rgb(0,0,0)
+          color: rgb(0, 0, 0)
         });
 
         drawMultiline(
@@ -188,6 +321,50 @@
           POS.repBlock.lineGap,
           font
         );
+
+        page1.drawText((data.repCAF || "").trim(),  { x: ax(POS.repCAF.x),  y: ay(POS.repCAF.y),  size: POS.repCAF.size,  font, color: rgb(0, 0, 0) });
+        page1.drawText((data.repPTIN || "").trim(), { x: ax(POS.repPTIN.x), y: ay(POS.repPTIN.y), size: POS.repPTIN.size, font, color: rgb(0, 0, 0) });
+        page1.drawText((data.repTel || "").trim(),  { x: ax(POS.repTel.x),  y: ay(POS.repTel.y),  size: POS.repTel.size,  font, color: rgb(0, 0, 0) });
+        page1.drawText((data.repFax || "").trim(),  { x: ax(POS.repFax.x),  y: ay(POS.repFax.y),  size: POS.repFax.size,  font, color: rgb(0, 0, 0) });
+
+        const acts = [
+          { desc: (data.line3DescriptionOfMatter || "").trim(), form: (data.line3TaxFormNumber || "").trim(), years: yearRange },
+          { desc: "", form: "", years: "" },
+          { desc: "", form: "", years: "" }
+        ];
+
+        acts.forEach((row, i) => {
+          const idx = i + 1;
+
+          page1.drawText(clamp(row.desc, 75), {
+            x: ax(POS[`acts_desc_${idx}`].x),
+            y: ay(POS[`acts_desc_${idx}`].y),
+            size: POS[`acts_desc_${idx}`].size,
+            font,
+            color: rgb(0, 0, 0)
+          });
+
+          page1.drawText(clamp(row.form, 12), {
+            x: ax(POS[`acts_form_${idx}`].x),
+            y: ay(POS[`acts_form_${idx}`].y),
+            size: POS[`acts_form_${idx}`].size,
+            font,
+            color: rgb(0, 0, 0)
+          });
+
+          page1.drawText(clamp(row.years, 22), {
+            x: ax(POS[`acts_year_${idx}`].x),
+            y: ay(POS[`acts_year_${idx}`].y),
+            size: POS[`acts_year_${idx}`].size,
+            font,
+            color: rgb(0, 0, 0)
+          });
+        });
+
+        if (data.line5aAuthorizeDisclosure) drawCheck(page1, ax(POS.line5aAuthorizeDisclosure_Check.x), ay(POS.line5aAuthorizeDisclosure_Check.y), font);
+        if (data.line5aAccessRecords)      drawCheck(page1, ax(POS.line5aAccessISP_Check.x),          ay(POS.line5aAccessISP_Check.y),          font);
+        if (data.line5aSubstituteOrAddRep) drawCheck(page1, ax(POS.line5aSubAddRep_Check.x),          ay(POS.line5aSubAddRep_Check.y),          font);
+        if (data.line5aSignReturn)         drawCheck(page1, ax(POS.line5aSignReturn_Check.x),         ay(POS.line5aSignReturn_Check.y),         font);
 
         const out = await pdfDoc.save();
         const blob = new Blob([out], { type: "application/pdf" });
@@ -205,9 +382,9 @@
       }
 
       document.getElementById("generate").addEventListener("click", () => {
-        generate().catch(e => {
+        generate().catch((e) => {
           console.error(e);
-          status.textContent = "Error generating PDF.";
+          status.textContent = `Error: ${e && e.message ? e.message : String(e)}`;
         });
       });
     })();
