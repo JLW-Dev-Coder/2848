@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-  <h1>Form 2848 Generator</h1>
+  <h1>Form 2848 Generator (p1)</h1>
   <p class="meta" id="buildMeta"></p>
 
   <div class="row" id="summary"></div>
@@ -108,7 +108,7 @@
 
       document.getElementById("buildMeta").innerHTML =
         `<ol style="margin:0; padding-left:18px;">
-          <li>Complete all required fields above (including ClientLastName and ClientFirstName).</li>
+          <li>Complete all required fields above.</li>
           <li>Click <b>Generate PDF</b> to download Page 1.</li>
           <li>Open Page 2 and e-sign <b>Part II</b>: sign directly under the client’s signature line using the same representative details entered above.</li>
           <li>Save and upload using this filename format: <b>${fileNameTemplate}</b>.</li>
@@ -141,8 +141,8 @@
 
         repCAF:  { x: 395, y: 578, size: IRS_TEXT_SIZE },
         repPTIN: { x: 396, y: 566, size: IRS_TEXT_SIZE },
-        repTel:  { x: 413, y: 553, size: IRS_TEXT_SIZE },
-        repFax:  { x: 405, y: 541, size: IRS_TEXT_SIZE },
+        repTel:  { x: 413, y: 554, size: IRS_TEXT_SIZE },
+        repFax:  { x: 405, y: 542, size: IRS_TEXT_SIZE },
 
         taxpayerNameAddressBlock: { x: 40, y: 640, lineGap: 9, size: IRS_TEXT_SIZE },
         taxpayerTIN: { x: 348, y: 640, size: IRS_TEXT_SIZE }
