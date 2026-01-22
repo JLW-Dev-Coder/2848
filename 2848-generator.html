@@ -15,18 +15,36 @@
   </style>
 </head>
 <body>
-  <h2 style="color:red" id="runStamp"></h2>
+  
+<h1>Form 2848 Generator</h1>
 
-  <h1>Form 2848 Generator</h1>
-  <p class="meta" id="buildMeta">Stamped onto a flattened IRS PDF (no form fields required).</p>
+<p class="meta" id="buildMeta">
+This tool generates a flattened IRS Form 2848 PDF after all required fields are completed and submitted.
+</p>
 
-  <div class="row" id="summary"></div>
+<div class="row" id="summary"></div>
 
-  <div class="row">
+<div class="row">
+    <ol>
+        <li>Complete all required fields on the Form 2848.</li>
+        <li>Submit the form to validate entries.</li>
+        <li>Select <strong>Generate PDF</strong> to create the flattened document.</li>
+        <li>Save the generated PDF together with page 2.</li>
+    </ol>
+
+    <p>
+        Use the following file naming format when saving:
+        <br>
+        <code>Form_2848_ClientLastName_ClientFirstName_DateSigned_YYYY_MMDD</code>
+    </p>
+</div>
+
+<div class="row">
     <button class="btn" id="generate" type="button">Generate PDF</button>
-  </div>
+</div>
 
-  <div id="status">Ready.</div>
+<div id="status">Ready.</div>
+
 
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script>
